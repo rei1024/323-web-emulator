@@ -1,0 +1,21 @@
+{
+  "tasks": {
+  },
+  "exclude": [],
+  "lint": {
+    "rules": {
+      "include": ["no-throw-literal", "no-sparse-arrays", "no-eval"],
+      "exclude": [
+        "ban-ts-comment",
+        "no-unused-vars",
+        "no-this-alias",
+        "no-inferrable-types",
+        "no-window"
+      ]
+    }
+  },
+  "fmt": {
+    "indentWidth": 2
+  },
+  "imports": {}
+}
