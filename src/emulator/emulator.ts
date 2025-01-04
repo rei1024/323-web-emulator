@@ -1,29 +1,37 @@
+import { Func } from "../function.ts";
+import {
+  I_ADD,
+  I_AND,
+  I_HLT,
+  I_MUL,
+  I_OR,
+  I_OUT,
+  I_ROT,
+  I_SHA,
+  I_SHF,
+  I_STR,
+  I_SUB,
+  I_XOR,
+} from "../instruction/instruction-const.ts";
+import {
+  decodeInstruction,
+  type Instruction,
+} from "../instruction/instruction.ts";
 import { Cache } from "./components/cache.ts";
 import { RAM } from "./components/ram.ts";
 import { Registers } from "./components/registers.ts";
 
-const band = (x: number, y: number) => x & y;
-const bor = (x: number, y: number) => x | y;
-const lshift = (x: number, bits: number) => x << bits;
-const rshift = (x: number, bits: number) => x >>> bits; // Use unsigned right shift
-const rrotate = (x: number, bits: number) => (x >>> bits) | (x << (32 - bits));
-const lrotate = (x: number, bits: number) => (x << bits) | (x >>> (32 - bits));
-const extract = (x: number, bit: number) => (x >>> bit) & 1;
-
-interface Instruction {
-  opcode: number;
-  /** Registers, immediates, labels */
-  operands: number[]; // Store operand values directly
-}
-
-function assemble(assemblyCode: string): Uint32Array {
-  // ... (Lexing, parsing, symbol table creation) ...
-
-  const machineCode: number[] = [];
-  // ... (Code generation) ...
-
-  return new Uint32Array(machineCode);
-}
+const airthOpMap = {
+  [I_ADD]: Func.add,
+  [I_SUB]: Func.sub,
+  [I_MUL]: Func.mul,
+  [I_SHF]: Func.shf,
+  [I_ROT]: Func.rot,
+  [I_SHA]: Func.sha,
+  [I_OR]: Func.or,
+  [I_AND]: Func.and,
+  [I_XOR]: Func.xor,
+};
 
 export class Emulator {
   /**
@@ -32,79 +40,110 @@ export class Emulator {
   private pc = 256; // Starting address
 
   private registers = new Registers();
-  private flag = false;
+  private flag: 0 | 1 = 0;
   private cache = new Cache();
   private ram = new RAM();
+
+  getState() {
+    return {
+      pc: this.pc,
+      registers: this.registers.getState(),
+      flag: this.flag,
+      cache: this.cache.getState(),
+      ram: this.ram.getState(),
+    };
+  }
 
   constructor(machineCode: Uint32Array) {
     // Load machine code into RAM after column 0
     this.ram.setArray(machineCode, 128);
   }
 
-  /**
-   * @param instructionHWord 16 bit
-   * @returns
-   */
-  private decodeInstruction(instructionHWord: number): Instruction {
-    const opcode = rshift(instructionHWord, 12);
-    const operands: number[] = [];
+  private execInst(
+    inst: Instruction,
+    hwordCount: number,
+  ): { flag: 0 | 1; nextPC: number } {
+    switch (inst.type) {
+      case I_ADD:
+      case I_SUB:
+      case I_MUL:
+      case I_SHF:
+      case I_ROT:
+      case I_SHA:
+      case I_OR:
+      case I_AND:
+      case I_XOR: {
+        const { value, flag } = airthOpMap[inst.type](
+          this.registers.get(inst.xX),
+          this.registers.get(inst.xY),
+        );
+        this.registers.set(
+          inst.xZ,
+          value,
+        );
+        return {
+          flag,
+          nextPC: this.pc + hwordCount,
+        };
+      }
+      case I_STR: {
+        const address = this.registers.get(inst.xY);
+        this.ram.set(address, this.registers.get(inst.xX));
+        return {
+          flag: 0,
+          nextPC: this.pc + hwordCount,
+        };
+      }
+      case I_OUT: {
+        // TODO: Implement I/O
+        break;
+      }
+      case I_HLT: {
+        return {
+          flag: 0,
+          nextPC: this.pc,
+        };
+      }
+      default: {
+        // @ts-expect-error TODO implement
+        assertNever(inst.type);
+      }
+    }
+    // TODO: implement
+    throw new Error("Not implemented");
+  }
 
-    // Extract operands based on the instruction format (you'll need to fill this in)
-    // Example for a RRR instruction:
-    operands.push(band(rshift(instructionHWord, 8), 0xF)); // Register 1
-    operands.push(band(rshift(instructionHWord, 4), 0xF)); // Register 2
-    operands.push(band(instructionHWord, 0xF)); // Register 3
+  step(): "continue" | "halt" {
+    const currentPC = this.pc;
+    const instructionHWord = this.ram.get16(currentPC);
+    const { hwordCount, inst } = decodeInstruction(
+      instructionHWord,
+      () => this.ram.get16(currentPC + 1),
+      () => this.ram.get16(currentPC + 2),
+    );
 
-    return { opcode, operands };
+    const { flag, nextPC } = this.execInst(inst, hwordCount);
+    this.flag = flag;
+
+    this.pc = nextPC;
+
+    if (inst.type === I_HLT) {
+      return "halt";
+    }
+
+    return "continue";
   }
 
   run() {
     while (true) {
-      const instructionHWord = this.ram.get16(this.pc++);
-      const instruction = this.decodeInstruction(instructionHWord);
-
-      switch (instruction.opcode) {
-        case 0x0: {
-          // ADD
-          this.registers.set(
-            instruction.operands[2],
-            this.registers.get(instruction.operands[0]) +
-              this.registers.get(instruction.operands[1]),
-          );
-          break;
-        }
-        case 0x1: {
-          // TODO
-          break;
-        }
-        case 0xA: //OUT
-          if (instruction.operands[0] == 14) {
-            const data = this.registers.get(instruction.operands[1]);
-            // TODO
-            // for (let i = 0; i < 32; i++) {
-            //   this.display[i] = extract(data, 31 - i);
-            // }
-            // this.updateDisplay();
-          }
-          break;
-        case 0xE: // Various instructions (LD, JMP, JNF, JF, IN) - needs more decoding
-          if (band(instructionHWord, 0xF00) == 0x100) {
-            this.registers.set(
-              instruction.operands[1],
-              this.ram.get(this.pc++),
-            );
-          }
-          if (band(instructionHWord, 0xF00) == 0x000) {
-            this.pc = this.ram.get(this.pc);
-          }
-          break;
-        case 0xee: // HLT
-          return;
-        default:
-          console.warn(
-            `Unimplemented opcode: 0x${instruction.opcode.toString(16)}`,
-          );
+      const result = this.step();
+      if (result === "halt") {
+        break;
       }
     }
   }
+}
+
+function assertNever(x: never): never {
+  throw new Error("Unexpected object: " + x);
 }

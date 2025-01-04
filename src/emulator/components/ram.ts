@@ -19,6 +19,10 @@ export class RAM {
     }
   }
 
+  getState() {
+    return Array.from(this.ram);
+  }
+
   setArray(array: Uint32Array, offset?: number) {
     this.ram.set(array, offset);
   }

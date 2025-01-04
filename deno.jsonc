@@ -1,5 +1,11 @@
 {
   "tasks": {
+    "t": "deno test",
+    "w": "deno test --watch"
+  },
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true
   },
   "exclude": [],
   "lint": {
@@ -17,5 +23,7 @@
   "fmt": {
     "indentWidth": 2
   },
-  "imports": {}
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.10"
+  }
 }

@@ -12,8 +12,16 @@
 export class Registers {
   private registers = new Uint32Array(16);
 
+  getState() {
+    return Array.from(this.registers);
+  }
+
   /** Get xi register */
   get(i: number): number {
+    if (i < 0 || i > 0xF) {
+      throw new Error(`Invalid register index: ${i}`);
+    }
+    // x0 is always 0
     if (i === 0) {
       return 0;
     }
@@ -22,9 +30,14 @@ export class Registers {
 
   /** Set xi register to value */
   set(i: number, value: number) {
+    if (i < 0 || i > 0xF) {
+      throw new Error(`Invalid register index: ${i}`);
+    }
     if (i === 0) {
+      // x0 do nothing
       return;
     }
-    this.registers[i] = i === 15 ? ~value : value;
+    // xF is inverted
+    this.registers[i] = i === 0xF ? ~value : value;
   }
 }
