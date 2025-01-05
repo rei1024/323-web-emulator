@@ -352,8 +352,8 @@ export function encodeInstruction(inst: Instruction): number[] {
       return [
         typeToTopNybble[inst.type] << 12 | 1 << 4 | inst.xZ,
         // split to hwords
-        inst.imm32 >> 16,
         inst.imm32 & 0xffff,
+        inst.imm32 >> 16,
       ];
     }
     case I_LDR: {
