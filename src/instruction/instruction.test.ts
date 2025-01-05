@@ -97,11 +97,12 @@ Deno.test("decodeInstruction LDI", () => {
   const imm16Lower = 0xc;
   const decoded = decodeInstruction(encoded, () => imm16, () => imm16Lower);
 
-  const expected = [encoded, imm16, imm16Lower];
+  const expected = [encoded, imm16Lower, imm16];
   assertEquals(decoded, {
     inst: {
       type: I_LDI,
-      imm32: imm16 << 16 | imm16Lower,
+      // least significant 16 bits first
+      imm32: imm16 | imm16Lower << 16,
       xZ: 5,
     },
     hwordCount: expected.length,

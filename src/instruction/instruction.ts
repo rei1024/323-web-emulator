@@ -446,7 +446,8 @@ export function decodeInstruction(
       if (nextNextHword === undefined) {
         throw new Error("Unexpected end of instruction");
       }
-      const imm32 = (nextHword << 16) | nextNextHword;
+      // least significant hword first
+      const imm32 = nextHword | nextNextHword << 16;
       return {
         inst: {
           type: I_LDI,
@@ -478,9 +479,10 @@ export function decodeInstruction(
         if (imm16 === undefined) {
           throw new Error("Unexpected end of instruction");
         }
+        // NOTE: Documentation is wrong. jnf and jf are swapped.
         return {
           inst: {
-            type: I_JFI,
+            type: I_JNFI,
             imm16,
           },
           hwordCount: 2,
@@ -493,7 +495,7 @@ export function decodeInstruction(
         }
         return {
           inst: {
-            type: I_JNFI,
+            type: I_JFI,
             imm16,
           },
           hwordCount: 2,
@@ -528,9 +530,10 @@ export function decodeInstruction(
         };
       }
       case 1: {
+        // NOTE: Documentation is wrong. jnf and jf are swapped.
         return {
           inst: {
-            type: I_JFR,
+            type: I_JNFR,
             xY: y,
           },
           hwordCount: 1,
@@ -539,7 +542,7 @@ export function decodeInstruction(
       case 2: {
         return {
           inst: {
-            type: I_JNFR,
+            type: I_JFR,
             xY: y,
           },
           hwordCount: 1,

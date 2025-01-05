@@ -19,7 +19,7 @@ export class RAM {
     }
   }
 
-  getState() {
+  getState(): number[] {
     return Array.from(this.ram);
   }
 
@@ -27,11 +27,19 @@ export class RAM {
     this.ram.set(array, offset);
   }
 
+  /**
+   * @param address word address
+   * @returns 32-bit value
+   */
   get(address: number): number {
     this.checkAddressValidity(address);
     return this.ram[address];
   }
 
+  /**
+   * @param address word address
+   * @param value 32-bit value
+   */
   set(address: number, value: number) {
     this.checkAddressValidity(address);
     this.ram[address] = value;
@@ -39,6 +47,7 @@ export class RAM {
 
   /**
    * Get hword (IMM16)
+   * @returns 16-bit value
    */
   get16(hwordAddress: number): number {
     // Calculate the word address and hword offset within the word
@@ -47,12 +56,13 @@ export class RAM {
     const isUpperHWord = hwordAddress & 1; // Check if odd (1 for upper hword, 0 for lower)
 
     const word = this.ram[wordAddress];
-    return isUpperHWord ? (word >>> 16) & 0xFFFF : word & 0xFFFF;
+    return isUpperHWord ? ((word >>> 16) & 0xFFFF) : word & 0xFFFF;
   }
 
   /**
    * Get word (IMM32)
    * The least-significant hword comes first (little-endian).
+   * @returns 32-bit value
    */
   get32(hwordAddress: number): number {
     // Fetch the least significant hword

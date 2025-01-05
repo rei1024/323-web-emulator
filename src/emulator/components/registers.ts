@@ -16,11 +16,22 @@ export class Registers {
     return Array.from(this.registers);
   }
 
-  /** Get xi register */
-  get(i: number): number {
+  pretty() {
+    return "Registers { " +
+      Array.from(this.registers).map((r, i) =>
+        "x" + i.toString(16).toUpperCase() + ":" + r
+      ).join(", ") + " }";
+  }
+
+  private checkRegisterValidity(i: number) {
     if (i < 0 || i > 0xF) {
       throw new Error(`Invalid register index: ${i}`);
     }
+  }
+
+  /** Get xi register */
+  get(i: number): number {
+    this.checkRegisterValidity(i);
     // x0 is always 0
     if (i === 0) {
       return 0;
@@ -30,9 +41,7 @@ export class Registers {
 
   /** Set xi register to value */
   set(i: number, value: number) {
-    if (i < 0 || i > 0xF) {
-      throw new Error(`Invalid register index: ${i}`);
-    }
+    this.checkRegisterValidity(i);
     if (i === 0) {
       // x0 do nothing
       return;

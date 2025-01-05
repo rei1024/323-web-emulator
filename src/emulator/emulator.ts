@@ -2,7 +2,18 @@ import { Func } from "../function.ts";
 import {
   I_ADD,
   I_AND,
+  I_DIV,
   I_HLT,
+  I_IN,
+  I_JFI,
+  I_JFR,
+  I_JMPI,
+  I_JMPR,
+  I_JNFI,
+  I_JNFR,
+  I_LDI,
+  I_LDR,
+  I_MOD,
   I_MUL,
   I_OR,
   I_OUT,
@@ -25,6 +36,8 @@ const airthOpMap = {
   [I_ADD]: Func.add,
   [I_SUB]: Func.sub,
   [I_MUL]: Func.mul,
+  [I_DIV]: Func.div,
+  [I_MOD]: Func.mod,
   [I_SHF]: Func.shf,
   [I_ROT]: Func.rot,
   [I_SHA]: Func.sha,
@@ -43,6 +56,10 @@ export class Emulator {
   private flag: 0 | 1 = 0;
   private cache = new Cache();
   private ram = new RAM();
+
+  prettyRegisters() {
+    return this.registers.pretty();
+  }
 
   getState() {
     return {
@@ -67,6 +84,8 @@ export class Emulator {
       case I_ADD:
       case I_SUB:
       case I_MUL:
+      case I_DIV:
+      case I_MOD:
       case I_SHF:
       case I_ROT:
       case I_SHA:
@@ -96,7 +115,73 @@ export class Emulator {
       }
       case I_OUT: {
         // TODO: Implement I/O
-        break;
+        return {
+          flag: 0,
+          nextPC: this.pc + hwordCount,
+        };
+      }
+      case I_JMPI: {
+        return {
+          flag: 0,
+          nextPC: inst.imm16,
+        };
+      }
+      case I_JFI: {
+        return {
+          flag: 0,
+          nextPC: this.flag ? inst.imm16 : this.pc + hwordCount,
+        };
+      }
+      case I_JNFI: {
+        return {
+          flag: 0,
+          nextPC: this.flag ? this.pc + hwordCount : inst.imm16,
+        };
+      }
+      case I_LDI: {
+        this.registers.set(inst.xZ, inst.imm32);
+        return {
+          flag: 0,
+          nextPC: this.pc + hwordCount,
+        };
+      }
+      case I_LDR: {
+        const address = this.registers.get(inst.xY);
+        this.registers.set(inst.xZ, this.ram.get(address));
+        return {
+          flag: 0,
+          nextPC: this.pc + hwordCount,
+        };
+      }
+      case I_JMPR: {
+        return {
+          flag: 0,
+          nextPC: this.registers.get(inst.xY),
+        };
+      }
+      case I_JFR: {
+        return {
+          flag: 0,
+          nextPC: this.flag
+            ? this.registers.get(inst.xY)
+            : this.pc + hwordCount,
+        };
+      }
+      case I_JNFR: {
+        return {
+          flag: 0,
+          nextPC: this.flag
+            ? this.pc + hwordCount
+            : this.registers.get(inst.xY),
+        };
+      }
+      case I_IN: {
+        // TODO: Implement I/O
+        this.registers.set(inst.xZ, 0);
+        return {
+          flag: 0,
+          nextPC: this.pc + hwordCount,
+        };
       }
       case I_HLT: {
         return {
@@ -105,23 +190,23 @@ export class Emulator {
         };
       }
       default: {
-        // @ts-expect-error TODO implement
-        assertNever(inst.type);
+        assertNever(inst);
       }
     }
-    // TODO: implement
-    throw new Error("Not implemented");
   }
 
-  step(): "continue" | "halt" {
+  private getCurrentInst() {
     const currentPC = this.pc;
     const instructionHWord = this.ram.get16(currentPC);
-    const { hwordCount, inst } = decodeInstruction(
+    return decodeInstruction(
       instructionHWord,
       () => this.ram.get16(currentPC + 1),
       () => this.ram.get16(currentPC + 2),
     );
+  }
 
+  step(): "continue" | "halt" {
+    const { inst, hwordCount } = this.getCurrentInst();
     const { flag, nextPC } = this.execInst(inst, hwordCount);
     this.flag = flag;
 
@@ -136,6 +221,15 @@ export class Emulator {
 
   run() {
     while (true) {
+      // DEBUG
+      // console.log(
+      //   this.ram.get16(this.pc).toString(16).padStart(4, "0"),
+      //   stringifyInstruction(this.getCurrentInst().inst),
+      //   this.registers.getState(),
+      // );
+      // if (!confirm("Next")) {
+      //   return;
+      // }
       const result = this.step();
       if (result === "halt") {
         break;
