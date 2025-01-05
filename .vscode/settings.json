@@ -1,9 +1,7 @@
 {
   "deno.enable": true,
   "files.readonlyInclude": {
-    "/node_modules/**/*": true,
-    "/playwright-report/**/*": true,
-    "/test-results/**/*": true
+    "/node_modules/**/*": true
   },
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "denoland.vscode-deno",

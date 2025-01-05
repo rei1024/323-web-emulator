@@ -23,11 +23,11 @@ import {
   I_STR,
   I_SUB,
   I_XOR,
-} from "../instruction/instruction-const.ts";
+} from "./instruction/instruction-const.ts";
 import {
   decodeInstruction,
   type Instruction,
-} from "../instruction/instruction.ts";
+} from "./instruction/instruction.ts";
 import { Cache } from "./components/cache.ts";
 import { RAM } from "./components/ram.ts";
 import { Registers } from "./components/registers.ts";

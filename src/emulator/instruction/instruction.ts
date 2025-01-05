@@ -1,4 +1,4 @@
-import { rshift } from "../bits.ts";
+import { rshift } from "../../bits.ts";
 import {
   I_ADD,
   I_AND,

@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert/equals";
 import { Emulator } from "./emulator.ts";
+import { expMachineCode } from "../test/data.ts";
 
 Deno.test("Emulator add x0,x0,xF", () => {
   const emulator = new Emulator(new Uint32Array([0x000f]));
@@ -10,31 +11,8 @@ Deno.test("Emulator add x0,x0,xF", () => {
   );
 });
 
-const exp = new Uint32Array([
-  0x0003e011,
-  0xe0120000,
-  0x0000000a,
-  0x010be01c,
-  0xe0000000,
-  0xe01e0114,
-  0x0000000e,
-  0xe01ea8e1,
-  0x0000000e,
-  0xeeeea0e1,
-  0x0001e019,
-  0xd0980000,
-  0xd02ad01b,
-  0xffffe01e,
-  0xda00ffff,
-  0xc9a0e2c1,
-  0x0123e001,
-  0x2bbb2b88,
-  0xe0007aea,
-  0x0000011d,
-]);
-
 Deno.test("Emulator run exp", () => {
-  const emulator = new Emulator(exp);
+  const emulator = new Emulator(expMachineCode);
   emulator.run();
   assertEquals(
     emulator.prettyRegisters(),
