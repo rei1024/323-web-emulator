@@ -1,4 +1,4 @@
-import { Func } from "../function.ts";
+import { Func } from "./components/function.ts";
 import {
   I_ADD,
   I_AND,
