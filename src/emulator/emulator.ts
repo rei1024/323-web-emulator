@@ -47,7 +47,12 @@ const airthOpMap = {
 };
 
 export interface InDevice {
-  getData(_: { pin: number }): {
+  getData(_: {
+    /**
+     * Input pin
+     */
+    pin: number;
+  }): {
     /** 32-bit number */
     data: number;
 
@@ -59,7 +64,7 @@ export interface OutDevice {
   output(data: {
     /** 32-bit number */
     data: number;
-    /** Input pin */
+    /** Output pin */
     pin: number;
   }): { flag: 0 | 1 };
 }

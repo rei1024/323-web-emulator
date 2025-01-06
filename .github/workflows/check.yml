@@ -1,0 +1,26 @@
+name: Check
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Git Checkout Deno Module
+        uses: actions/checkout@v4
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x # latest
+      - name: Check Format
+        run: deno fmt --check
+      - name: Run Test
+        run: deno task t
