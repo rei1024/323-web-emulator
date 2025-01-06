@@ -26,10 +26,7 @@ type ItemRaw =
 
 type ObjectCodeItem =
   & {
-    /**
-     * 0-based line index
-     */
-    lineIndex: number;
+    ctx: LineContext;
   }
   & ItemRaw;
 
@@ -81,7 +78,7 @@ class Parser {
     const cmd = line.slice(label ? (label.length + 1) : 0).trim();
 
     if (label) {
-      this.items.push({ type: "label-def", label, lineIndex });
+      this.items.push({ type: "label-def", label, ctx });
       if (this.symbolTable.has(label)) {
         throw new ErrorWithLineContext(`Duplicated label '${label}'`, ctx);
       }
@@ -287,16 +284,16 @@ class Parser {
     }
   }
 
-  pushWord(value: number, { lineIndex }: LineContext) {
-    this.items.push({ type: "word", value, lineIndex });
-    this.addrToLineIndex.set(this.addrAt, lineIndex);
+  pushWord(value: number, ctx: LineContext) {
+    this.items.push({ type: "word", value, ctx });
+    this.addrToLineIndex.set(this.addrAt, ctx.lineIndex);
     this.addrAt += 2;
   }
 
   pushLabel(
     label: ParsedOperand & { type: "label" },
     immidiateHwordCount: number,
-    { lineIndex }: LineContext,
+    ctx: LineContext,
   ) {
     // TODO: is this correct?
     const isWordBased = label.isWordBased;
@@ -305,15 +302,15 @@ class Parser {
       label: label.label,
       isWordBased,
       immidiateHwordCount,
-      lineIndex,
+      ctx,
     });
-    this.addrToLineIndex.set(this.addrAt, lineIndex);
+    this.addrToLineIndex.set(this.addrAt, ctx.lineIndex);
     this.addrAt += immidiateHwordCount;
   }
 
-  pushHword(value: number, { lineIndex }: LineContext) {
-    this.items.push({ type: "hword", value, lineIndex });
-    this.addrToLineIndex.set(this.addrAt, lineIndex);
+  pushHword(value: number, ctx: LineContext) {
+    this.items.push({ type: "hword", value, ctx });
+    this.addrToLineIndex.set(this.addrAt, ctx.lineIndex);
     this.addrAt++;
   }
 
@@ -364,7 +361,7 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
         if (addr == null) {
           throw new ErrorWithLineContext(
             `Label '${item.label}' not found`,
-            { lineIndex: item.lineIndex, lineSource: "" }, // TODO ctx
+            item.ctx,
           );
         }
         const value = item.isWordBased ? (addr >> 1) : addr;
@@ -373,10 +370,7 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
         } else if (item.immidiateHwordCount === 2) {
           machineCode.push(value & 0xffff, value >>> 16);
         } else {
-          throw new ErrorWithLineContext("Internal error", {
-            lineIndex: item.lineIndex,
-            lineSource: "", // TODO
-          });
+          throw new ErrorWithLineContext("Internal error", item.ctx);
         }
         break;
       }
