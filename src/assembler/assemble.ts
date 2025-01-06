@@ -1,15 +1,22 @@
 import { ErrorWithLineContext, type LineContext } from "./core.ts";
-import { parseInstruction } from "./parser/parse-inst.ts";
+import {
+  type ParsedOperand,
+  parseInstruction,
+  validatePseudoImmediates,
+} from "./parser/parse-inst.ts";
 import { parseUnsignedVal } from "./parser/parser-util.ts";
 
-type ItemRaw = { type: "label-def"; label: string } | {
-  type: "hword";
-  value: number;
-} | {
-  type: "word";
-  value: number;
-};
-// TODO add more types
+type ItemRaw =
+  | { type: "label-def"; label: string }
+  | {
+    type: "hword";
+    value: number;
+  }
+  | {
+    type: "word";
+    value: number;
+  }
+  | { type: "label"; is32: boolean; label: string };
 
 type ObjectCodeItem =
   & {
@@ -62,10 +69,13 @@ class Parser {
 
     const label = line.match(/^(?<label>[A-Za-z][A-Za-z0-9_]*):/)?.groups
       ?.label;
-    const cmd = line.slice(label ? label.length : 0).trim();
+    const cmd = line.slice(label ? (label.length + 1) : 0).trim();
 
     if (label) {
       this.items.push({ type: "label-def", label, lineIndex });
+      if (this.symbolTable.has(label)) {
+        throw new ErrorWithLineContext(`Duplicated label '${label}'`, ctx);
+      }
       this.symbolTable.set(label, this.addrAt);
     }
 
@@ -119,8 +129,131 @@ class Parser {
 
   private parseInstruction(cmd: string, ctx: LineContext) {
     cmd = cmd.trim();
-    const inst = parseInstruction(cmd, ctx);
-    TODO;
+    let inst = parseInstruction(cmd, ctx);
+    validatePseudoImmediates(inst, ctx);
+    // pseudo immediates
+    let numPseudoImmediate = { value: 0 };
+
+    const ldi = () => {
+      this.pushHword(0xe01e - numPseudoImmediate.value, ctx);
+    };
+    const modify = (operandIndex: number) => {
+      inst = structuredClone(inst);
+      inst.operands[operandIndex] = {
+        type: "register",
+        registerIndex: 0xe - numPseudoImmediate.value,
+      };
+      numPseudoImmediate.value++;
+    };
+
+    for (const [operandIndex, operand] of inst.operands.entries()) {
+      switch (operand.type) {
+        case "immediate": {
+          if (operand.isPseudo) {
+            ldi();
+            this.pushPseudoImmidiateValue(operand, ctx);
+            modify(operandIndex);
+          }
+          break;
+        }
+        case "label": {
+          if (operand.isPseudo) {
+            ldi();
+            this.pushLabel(operand, ctx);
+            modify(operandIndex);
+          }
+          break;
+        }
+        case "register": {
+          // nop
+          break;
+        }
+        default: {
+          operand satisfies never;
+        }
+      }
+    }
+
+    // emit instruction
+    let opcodeHword = inst.info.opcode;
+    // handle register operands first
+    for (const [patIndex, pat] of [...inst.info.argsPattern].entries()) {
+      if (pat === "R") {
+        const operandIndex = inst.info.registers[patIndex];
+        if (typeof operandIndex !== "number") {
+          throw new ErrorWithLineContext(
+            "Internal error: parseInstruction",
+            ctx,
+          );
+        }
+        console.log(inst.operands, { inst, patIndex, pat, operandIndex });
+
+        const operand = inst.operands[patIndex] ?? (() => {
+          throw new ErrorWithLineContext(
+            "Internal error: parseInstruction",
+            ctx,
+          );
+        })();
+
+        if (operand.type !== "register") {
+          throw new ErrorWithLineContext(
+            "Internal error: parseInstruction",
+            ctx,
+          );
+        }
+
+        opcodeHword = opcodeHword |
+          (operand.registerIndex << ((4 - operandIndex) * 4));
+      }
+    }
+    this.pushHword(opcodeHword, ctx);
+    // then immediates
+    for (const [patIndex, pat] of [...inst.info.argsPattern].entries()) {
+      if (pat === "I") {
+        const operandInfo = inst.info.registers[patIndex];
+        if (typeof operandInfo === "number") {
+          throw new ErrorWithLineContext(
+            "Internal error: parseInstruction",
+            ctx,
+          );
+        }
+        const operand = inst.operands[patIndex];
+        switch (operand.type) {
+          case "register": {
+            // register is handled above
+            throw new ErrorWithLineContext("Internal error", ctx);
+          }
+          case "immediate": {
+            if (operand.isPseudo) {
+              // pseudo immediate is handled above
+              throw new ErrorWithLineContext("Internal error", ctx);
+            }
+            if (operandInfo.immidiateHwordCount === 1) {
+              this.pushHword(operand.value, ctx);
+            } else if (operandInfo.immidiateHwordCount === 2) {
+              this.pushWord(operand.value, ctx);
+            } else {
+              throw new ErrorWithLineContext(
+                "Internal error: parseInstruction",
+                ctx,
+              );
+            }
+            break;
+          }
+          case "label": {
+            if (operand.isPseudo) {
+              // pseudo immediate is handled above
+              throw new ErrorWithLineContext("Internal error", ctx);
+            }
+            this.pushLabel(operand, ctx);
+            break;
+          }
+          default: {
+            operand satisfies never;
+          }
+        }
+      }
+    }
   }
 
   private parseStr(cmd: string, ctx: LineContext) {
@@ -154,10 +287,31 @@ class Parser {
     this.addrAt += 2;
   }
 
+  pushLabel(
+    label: ParsedOperand & { type: "label" },
+    { lineIndex }: LineContext,
+  ) {
+    this.items.push({
+      type: "label",
+      label: label.label,
+      is32: label.is32,
+      lineIndex,
+    });
+    this.addrToLineIndex.set(this.addrAt, lineIndex);
+    this.addrAt += label.is32 ? 2 : 1;
+  }
+
   pushHword(value: number, { lineIndex }: LineContext) {
     this.items.push({ type: "hword", value, lineIndex });
     this.addrToLineIndex.set(this.addrAt, lineIndex);
     this.addrAt++;
+  }
+
+  pushPseudoImmidiateValue(
+    item: ParsedOperand & { type: "immediate" },
+    ctx: LineContext,
+  ) {
+    this.pushWord(item.value, ctx);
   }
 
   align(n: number, ctx: LineContext) {
@@ -178,23 +332,10 @@ export function parseAssembly(src: string): ObjectCode {
   return new Parser().parse(src);
 }
 
-function argType(s: string): "register" | "label" | "number" | "unknown" {
-  if (/^x[0-9A-F]$/.test(s)) {
-    return "register";
-  } else if (/^[@a-zA-Z_]/.test(s)) {
-    return "label";
-  } else if (/^-?[0-9]/.test(s)) {
-    return "number";
-  } else {
-    return "unknown";
-  }
-}
-
 export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
   // hwords
   const machineCode: number[] = [];
 
-  // TODO
   for (const item of objectCode.items) {
     switch (item.type) {
       case "label-def": {
@@ -208,15 +349,33 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
         machineCode.push(item.value & 0xffff, item.value >>> 16);
         break;
       }
+      case "label": {
+        const addr = objectCode.symbolTable.get(item.label);
+        if (addr == null) {
+          throw new ErrorWithLineContext(
+            `Label '${item.label}' not found`,
+            { lineIndex: item.lineIndex, lineSource: "" }, // TODO ctx
+          );
+        }
+        if (item.is32) {
+          // TODO: is this correct?
+          machineCode.push(addr & 0xffff, addr >>> 16);
+        } else {
+          // TODO: is this correct?
+          machineCode.push(addr & 0xffff);
+        }
+        break;
+      }
       default: {
         item satisfies never;
       }
     }
   }
 
-  const u32: number[] = [];
   // flush last hword
-  u32.push(0);
+  machineCode.push(0);
+  const u32: number[] = [];
+
   let hwBuf: number | null = null;
   for (const hword of machineCode) {
     if (hwBuf == null) {
@@ -228,13 +387,6 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
   }
 
   return new Uint32Array(u32);
-}
-
-/**
- * @returns hword
- */
-function resolveImmidiate(objectCode: ObjectCode, imm: TODO): number {
-  // TODO
 }
 
 export function assemble(src: string): Uint32Array {

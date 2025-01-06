@@ -6,29 +6,57 @@ import { ErrorWithLineContext } from "../core.ts";
 Deno.test("parseOperand", () => {
   const ctx = { lineIndex: 0, lineSource: "" };
 
-  assertEquals(parseOperand("123", ctx), { type: "immediate", value: 123 });
+  assertEquals(parseOperand("123", ctx), {
+    type: "immediate",
+    isPseudo: false,
+    value: 123,
+  });
   assertEquals(parseOperand("-1", ctx), {
     type: "immediate",
+    isPseudo: false,
     value: 4294967295,
   });
-  assertEquals(parseOperand("0xabc", ctx), { type: "immediate", value: 0xabc });
+  assertEquals(parseOperand("0xabc", ctx), {
+    type: "immediate",
+    isPseudo: false,
+    value: 0xabc,
+  });
 
   assertEquals(parseOperand("!123", ctx), {
-    type: "pseudo-immediate",
+    type: "immediate",
+    isPseudo: true,
     value: 123,
   });
   assertEquals(parseOperand("xA", ctx), {
     type: "register",
-    index: 0xA,
+    registerIndex: 0xA,
   });
 
   assertEquals(parseOperand("@xyz", ctx), {
     type: "label",
+    isPseudo: false,
+    is32: true,
     label: "xyz",
   });
 
   assertEquals(parseOperand("!@xyz", ctx), {
-    type: "pseudo-immediate-label",
+    type: "label",
+    isPseudo: true,
+    is32: true,
+    label: "xyz",
+  });
+
+  assertEquals(parseOperand("xyz", ctx), {
+    type: "label",
+    isPseudo: false,
+    is32: false,
+    label: "xyz",
+  });
+
+  assertEquals(parseOperand("!xyz", ctx), {
+    type: "label",
+    isPseudo: true,
+    is32: false,
     label: "xyz",
   });
 });
@@ -40,15 +68,15 @@ Deno.test("parseInstruction", () => {
     op: "add",
     operands: [
       {
-        index: 0,
+        registerIndex: 0,
         type: "register",
       },
       {
-        index: 1,
+        registerIndex: 1,
         type: "register",
       },
       {
-        index: 2,
+        registerIndex: 2,
         type: "register",
       },
     ],

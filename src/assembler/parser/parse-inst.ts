@@ -4,7 +4,7 @@ import { parseInteger } from "../parser/parser-util.ts";
 export type InstructionInfo = {
   opcode: number;
   argsPattern: `${"R" | "I" | ""}${"R" | "I" | ""}${"R" | "I" | ""}`;
-  registers: number[];
+  registers: (number | { immidiateHwordCount: number })[];
 };
 
 export const instructionSet: Record<string, InstructionInfo[]> = {
@@ -24,18 +24,34 @@ export const instructionSet: Record<string, InstructionInfo[]> = {
   st: [{ opcode: 0xa000, argsPattern: "RR", registers: [3, 2] }],
   ld: [
     { opcode: 0xe100, argsPattern: "RR", registers: [3, 4] },
-    { opcode: 0xe010, argsPattern: "IR", registers: [2, 4] },
+    {
+      opcode: 0xe010,
+      argsPattern: "IR",
+      registers: [{ immidiateHwordCount: 2 }, 4],
+    },
   ],
   jmp: [
-    { opcode: 0xe000, argsPattern: "I", registers: [1] },
+    {
+      opcode: 0xe000,
+      argsPattern: "I",
+      registers: [{ immidiateHwordCount: 1 }],
+    },
     { opcode: 0xe200, argsPattern: "R", registers: [3] },
   ],
   jnf: [
-    { opcode: 0xe001, argsPattern: "I", registers: [1] },
+    {
+      opcode: 0xe001,
+      argsPattern: "I",
+      registers: [{ immidiateHwordCount: 1 }],
+    },
     { opcode: 0xe201, argsPattern: "R", registers: [3] },
   ],
   jf: [
-    { opcode: 0xe002, argsPattern: "I", registers: [1] },
+    {
+      opcode: 0xe002,
+      argsPattern: "I",
+      registers: [{ immidiateHwordCount: 1 }],
+    },
     { opcode: 0xe202, argsPattern: "R", registers: [3] },
   ],
   hlt: [{ opcode: 0xeeee, argsPattern: "", registers: [] }],
@@ -53,30 +69,38 @@ export function parseInstruction(
   ctx: LineContext,
 ): ParsedInstruction {
   inst = inst.trim();
-  const { op, argStr } = inst.match(/^(?<op>[a-z]+) (?<argStr>.*)$/)?.groups ??
-    {};
+  let { op, argStr } =
+    inst.match(/^(?<op>[a-z]+)(?:\s+(?<argStr>.*))?$/)?.groups ?? {};
 
-  if (!op || !argStr) {
-    throw new ErrorWithLineContext("Malformed instruction.", ctx);
+  argStr = argStr ?? "";
+
+  if (!op) {
+    throw new ErrorWithLineContext(
+      `Malformed instruction. '${ctx.lineSource}'`,
+      ctx,
+    );
   }
   const infoList = instructionSet[op];
   if (infoList == null) {
     throw new ErrorWithLineContext(`Unrecognised opcode mnemonic '${op}'`, ctx);
   }
-  const args = argStr.split(",");
+  const args = argStr.split(",").filter((x) => x !== "");
   const parsedArgs = args.map((a) => parseOperand(a, ctx));
 
   for (const info of infoList) {
     if (args.length !== info.argsPattern.length) {
       throw new ErrorWithLineContext(`Number of operands is incorrect`, ctx);
     }
-    if (
-      [...info.argsPattern].every((pat, i) => {
-        const parsedArg = parsedArgs[i];
-        return (pat === "R" && parsedArg.type === "register") ||
-          (pat === "I" && parsedArg.type !== "register");
-      })
-    ) {
+
+    const isMatch = [...info.argsPattern].every((pat, i) => {
+      const parsedArg = parsedArgs[i];
+      // pseudo value is read from register
+      const type: "R" | "I" =
+        parsedArg.type === "register" || parsedArg.isPseudo ? "R" : "I";
+      return (pat === type);
+    });
+
+    if (isMatch) {
       return {
         op,
         operands: parsedArgs,
@@ -88,43 +112,34 @@ export function parseInstruction(
   throw new ErrorWithLineContext("Operand kind is incorrect", ctx);
 }
 
-export type ParsedOperand =
-  | {
-    /**
-     * 123
-     */
-    type: "immediate";
-    value: number;
-  }
-  | {
-    /**
-     * !0x00
-     */
-    type: "pseudo-immediate";
-    value: number;
-  }
-  | {
-    /**
-     * !@abc
-     */
-    type: "pseudo-immediate-label";
-    // without !
-    label: string;
-  }
-  | {
-    /**
-     * xn
-     */
-    type: "register";
-    index: number;
-  }
-  | {
-    type: "label";
-    /**
-     * without @
-     */
-    label: string;
-  };
+export type ParsedOperand = {
+  type: "label";
+  /** with @ */
+  is32: boolean;
+  /**
+   * with !
+   */
+  isPseudo: boolean;
+  /** without @ */
+  label: string;
+} | {
+  /**
+   * xA
+   */
+  type: "register";
+  /** 0x0 ~ 0xF */
+  registerIndex: number;
+} | {
+  /**
+   * 123, 0x23
+   */
+  type: "immediate";
+  /**
+   * with !
+   */
+  isPseudo: boolean;
+  value: number;
+};
 
 export function parseOperand(
   operand: string,
@@ -134,43 +149,79 @@ export function parseOperand(
   {
     const index = operand.match(/^x(?<index>[0-9A-F])$/)?.groups?.index;
     if (index) {
-      return { type: "register", index: parseInt(index, 16) };
+      return { type: "register", registerIndex: parseInt(index, 16) };
     }
   }
 
   // Label or Pseudo immidiate label
   {
-    const { label, pi } = operand.match(
-      /^(?<pi>!?)@(?<label>[A-Za-z][A-Za-z0-9_]+)/,
+    const { label, pi, is32 } = operand.match(
+      /^(?<pi>!)?(?<is32>@)?(?<label>[A-Za-z][A-Za-z0-9_]+)/,
     )
       ?.groups ?? {};
     if (label) {
-      if (pi) {
-        return { type: "pseudo-immediate-label", label };
-      } else {
-        return { type: "label", label };
-      }
+      return {
+        type: "label",
+        isPseudo: pi != null,
+        is32: is32 != null,
+        label: label,
+      };
     }
   }
 
   {
     // immediate number or pseudo immidiate number
     const { num, pi } =
-      operand.match(/^(?<pi>!?)(?<num>[-A-Za-z0-9_]+)/)?.groups ?? {};
+      operand.match(/^(?<pi>!)?(?<num>[-A-Za-z0-9_]+)/)?.groups ?? {};
     if (num) {
-      if (pi) {
-        return {
-          type: "pseudo-immediate",
-          value: parseInteger(num, ctx),
-        };
-      } else {
-        return {
-          type: "immediate",
-          value: parseInteger(num, ctx),
-        };
-      }
+      return {
+        type: "immediate",
+        isPseudo: pi != null,
+        value: parseInteger(num, ctx),
+      };
     }
   }
 
   throw new ErrorWithLineContext(`Malformed operand '${operand}'`, ctx);
+}
+
+const isPseudoImmediate = (
+  o: ParsedOperand,
+) =>
+  (o.type === "immediate" && o.isPseudo) ||
+  (o.type === "label" && o.isPseudo);
+
+export function validatePseudoImmediates(
+  inst: ParsedInstruction,
+  ctx: LineContext,
+) {
+  if (inst.info.argsPattern === "RRR") {
+    const thirdOperand = inst.operands[2];
+    if (isPseudoImmediate(thirdOperand)) {
+      throw new ErrorWithLineContext(
+        "Incorrect use of pseudo-immediates.",
+        ctx,
+      );
+    }
+  } else if (["in", "out", "st"].includes(inst.op)) {
+    // allow 0, 1, or 2 pseudo-imms
+    // no checking needed
+  } else if (inst.op === "ld") {
+    const secondOperand = inst.operands[1];
+    if (isPseudoImmediate(secondOperand)) {
+      throw new ErrorWithLineContext(
+        "Second argument of ld cannot be pseudo-immediate.",
+        ctx,
+      );
+    }
+  } else {
+    for (const operand of inst.operands) {
+      if (isPseudoImmediate(operand)) {
+        throw new ErrorWithLineContext(
+          `Pseudo-immediates cannot be used for ${inst.op} instructions.`,
+          ctx,
+        );
+      }
+    }
+  }
 }
