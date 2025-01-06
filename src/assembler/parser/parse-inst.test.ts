@@ -61,9 +61,9 @@ Deno.test("parseOperand", () => {
   });
 });
 
-Deno.test("parseInstruction", () => {
-  const ctx = { lineIndex: 0, lineSource: "" };
+const ctx = { lineIndex: 0, lineSource: "" };
 
+Deno.test("parseInstruction add", () => {
   assertEquals({ ...parseInstruction("add x0,x1,x2", ctx), info: null }, {
     op: "add",
     operands: [
@@ -82,7 +82,9 @@ Deno.test("parseInstruction", () => {
     ],
     info: null,
   });
+});
 
+Deno.test("parseInstruction unknown", () => {
   assertThrows(
     () => {
       parseInstruction("unknwon x0,x1,x2", ctx);
@@ -90,4 +92,23 @@ Deno.test("parseInstruction", () => {
     ErrorWithLineContext,
     "Unrecognised opcode mnemonic 'unknwon'",
   );
+});
+
+Deno.test("parseInstruction st", () => {
+  assertEquals({ ...parseInstruction("st x1,!@pdx1", ctx), info: null }, {
+    op: "st",
+    operands: [
+      {
+        registerIndex: 1,
+        type: "register",
+      },
+      {
+        isPseudo: true,
+        isWordBased: true,
+        label: "pdx1",
+        type: "label",
+      },
+    ],
+    info: null,
+  });
 });

@@ -46,16 +46,54 @@ const airthOpMap = {
   [I_XOR]: Func.xor,
 };
 
+export interface InDevice {
+  getData(_: { pin: number }): {
+    /** 32-bit number */
+    data: number;
+
+    flag: 0 | 1;
+  };
+}
+
+export interface OutDevice {
+  output(data: {
+    /** 32-bit number */
+    data: number;
+    /** Input pin */
+    pin: number;
+  }): { flag: 0 | 1 };
+}
+
+const nopInDevice: InDevice = {
+  getData() {
+    return {
+      data: 0,
+      flag: 0,
+    };
+  },
+};
+
+const nopOutDevice: OutDevice = {
+  output() {
+    // nop
+    return { flag: 0 };
+  },
+};
+
 export class Emulator {
   /**
    * hword-based addresses
    */
   private pc = 256; // Starting address
+  private stepCount = 0;
 
   private registers = new Registers();
   private flag: 0 | 1 = 0;
   private cache = new Cache();
   private ram = new RAM();
+
+  private inDevice: InDevice;
+  private outDevice: OutDevice;
 
   prettyRegisters() {
     return this.registers.pretty();
@@ -71,9 +109,17 @@ export class Emulator {
     };
   }
 
-  constructor(machineCode: Uint32Array) {
+  constructor(
+    machineCode: Uint32Array,
+    devices: {
+      inDevice?: InDevice;
+      outDevice?: OutDevice;
+    } = {},
+  ) {
     // Load machine code into RAM after column 0
     this.ram.setArray(machineCode, 128);
+    this.inDevice = devices.inDevice ?? nopInDevice;
+    this.outDevice = devices.outDevice ?? nopOutDevice;
   }
 
   private execInst(
@@ -114,9 +160,12 @@ export class Emulator {
         };
       }
       case I_OUT: {
-        // TODO: Implement I/O
+        const { flag } = this.outDevice.output({
+          data: this.registers.get(inst.xX),
+          pin: this.registers.get(inst.xY),
+        });
         return {
-          flag: 0,
+          flag,
           nextPC: this.pc + hwordCount,
         };
       }
@@ -176,10 +225,12 @@ export class Emulator {
         };
       }
       case I_IN: {
-        // TODO: Implement I/O
-        this.registers.set(inst.xZ, 0);
+        const { data, flag } = this.inDevice.getData({
+          pin: this.registers.get(inst.xY),
+        });
+        this.registers.set(inst.xZ, data);
         return {
-          flag: 0,
+          flag,
           nextPC: this.pc + hwordCount,
         };
       }
@@ -207,10 +258,17 @@ export class Emulator {
 
   step(): "continue" | "halt" {
     const { inst, hwordCount } = this.getCurrentInst();
+    // DEBUG;
+    // console.log(
+    //   this.ram.get16(this.pc).toString(16).padStart(4, "0"),
+    //   stringifyInstruction(inst).padEnd(16, " "),
+    //   this.prettyRegisters(),
+    // );
     const { flag, nextPC } = this.execInst(inst, hwordCount);
     this.flag = flag;
 
     this.pc = nextPC;
+    this.stepCount++;
 
     if (inst.type === I_HLT) {
       return "halt";

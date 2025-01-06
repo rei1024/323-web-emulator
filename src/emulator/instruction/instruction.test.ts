@@ -5,6 +5,7 @@ import {
   I_JMPI,
   I_LDI,
   I_OUT,
+  I_STR,
   I_SUB,
 } from "./instruction-const.ts";
 import {
@@ -127,6 +128,29 @@ Deno.test("decodeInstruction OUT", () => {
       type: I_OUT,
       xX: 2,
       xY: 3,
+    },
+    hwordCount: expected.length,
+  });
+
+  const reencoded = encodeInstruction(decoded.inst);
+  assertEquals(reencoded, expected);
+  assertEquals(decoded.hwordCount, expected.length);
+});
+
+Deno.test("decodeInstruction STR", () => {
+  const encoded = 0xa230;
+  const decoded = decodeInstruction(encoded, () => {
+    throw new Error();
+  }, () => {
+    throw new Error();
+  });
+
+  const expected = [encoded];
+  assertEquals(decoded, {
+    inst: {
+      type: I_STR,
+      xX: 3, // reversed
+      xY: 2,
     },
     hwordCount: expected.length,
   });

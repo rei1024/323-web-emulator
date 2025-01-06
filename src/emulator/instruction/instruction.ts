@@ -332,11 +332,15 @@ export function encodeInstruction(inst: Instruction): number[] {
         inst.xZ,
       ];
     }
-    case I_STR:
+    case I_STR: {
+      return [
+        // NOTE: reversed.
+        typeToTopNybble[inst.type] << 12 | inst.xY << 8 | inst.xX << 4 | 0,
+      ];
+    }
     case I_OUT: {
       return [
-        typeToTopNybble[inst.type] << 12 | inst.xX << 8 | inst.xY << 4 |
-        (inst.type === I_STR ? 0x0 : 0x1),
+        typeToTopNybble[inst.type] << 12 | inst.xX << 8 | inst.xY << 4 | 1,
       ];
     }
     case I_JMPI:
@@ -419,16 +423,27 @@ export function decodeInstruction(
 
   if (opNybble === 0xa) {
     // 0xaXY(0|1)
-    return {
-      inst: {
-        type: z === 0 ? I_STR : z === 1 ? I_OUT : (() => {
-          throw new Error(`Invalid instruction ${toHex(hword)}`);
-        })(),
-        xX: x,
-        xY: y,
-      },
-      hwordCount: 1,
-    };
+    if (z === 0) {
+      return {
+        inst: {
+          type: I_STR,
+          // NOTE: reversed.
+          xX: y,
+          xY: x,
+        },
+        hwordCount: 1,
+      };
+    } else if (z === 1) {
+      return {
+        inst: {
+          type: I_OUT,
+          xX: x,
+          xY: y,
+        },
+        hwordCount: 1,
+      };
+    }
+    throw new Error(`Invalid instruction ${toHex(hword)}`);
   }
 
   if (opNybble !== 0xe) {

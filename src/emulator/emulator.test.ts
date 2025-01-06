@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert/equals";
 import { Emulator } from "./emulator.ts";
-import { expMachineCode } from "../test/data.ts";
+import { expMachineCode, textMachineCode } from "../test/data.ts";
+import { OutDeviceImpl } from "./devices/devices.ts";
 
 Deno.test("Emulator add x0,x0,xF", () => {
   const emulator = new Emulator(new Uint32Array([0x000f]));
@@ -17,5 +18,56 @@ Deno.test("Emulator run exp", () => {
   assertEquals(
     emulator.prettyRegisters(),
     "Registers { x0:0, x1:3, x2:10, x3:0, x4:0, x5:0, x6:0, x7:0, x8:59049, x9:1, xA:0, xB:43046721, xC:267, xD:0, xE:14, xF:0 }",
+  );
+});
+
+Deno.test("Emulator run text", () => {
+  const outDevice = new OutDeviceImpl();
+  const emulator = new Emulator(textMachineCode, {
+    outDevice,
+  });
+  for (let i = 0; i < 10000; i++) {
+    const res = emulator.step();
+    if (res === "halt") {
+      break;
+    }
+  }
+
+  assertEquals(
+    outDevice.prettyDisplay(),
+    [
+      "                                                                ",
+      "  o     o   o   o   o                                           ",
+      "o o     o   o   o   o                                           ",
+      "  o     o o o   o o o                                           ",
+      "  o         o       o                                           ",
+      "o o o       o       o                                           ",
+      "                                                                ",
+      "  o       o o     o                                             ",
+      "o o     o       o   o                                           ",
+      "  o     o o o   o o o                                           ",
+      "  o     o   o       o                                           ",
+      "o o o     o     o o                                             ",
+      "                                                                ",
+      "  o       o       o o                                           ",
+      "o o     o   o   o                                               ",
+      "  o     o o o   o o o                                           ",
+      "  o         o   o   o                                           ",
+      "o o o   o o       o                                             ",
+      "                                                                ",
+      "o o     o o     o o o                                           ",
+      "    o       o   o                                               ",
+      "  o       o     o o                                             ",
+      "o       o           o                                           ",
+      "o o o   o o o   o o                                             ",
+      "                                                                ",
+      "                                                                ",
+      "                                                                ",
+      "                                                                ",
+      "                                                                ",
+      "                                                                ",
+      "                                                                ",
+      "                                                                ",
+    ],
   );
 });

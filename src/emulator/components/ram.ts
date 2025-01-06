@@ -11,10 +11,10 @@ export class RAM {
 
   private static readonly INVALID_ADDRESS_LIMIT = 128;
 
-  private checkAddressValidity(address: number) {
+  private checkAddressValidity(address: number, kind: "get" | "set") {
     if (address < 0 || address < RAM.INVALID_ADDRESS_LIMIT) {
       throw new Error(
-        `Memfault: Attempted to access invalid address ${address}`,
+        `Memfault: Attempted to access invalid address ${address} while ${kind}ting`,
       );
     }
   }
@@ -32,7 +32,7 @@ export class RAM {
    * @returns 32-bit value
    */
   get(address: number): number {
-    this.checkAddressValidity(address);
+    this.checkAddressValidity(address, "get");
     return this.ram[address];
   }
 
@@ -41,7 +41,7 @@ export class RAM {
    * @param value 32-bit value
    */
   set(address: number, value: number) {
-    this.checkAddressValidity(address);
+    this.checkAddressValidity(address, "set");
     this.ram[address] = value;
   }
 
@@ -52,7 +52,7 @@ export class RAM {
   get16(hwordAddress: number): number {
     // Calculate the word address and hword offset within the word
     const wordAddress = hwordAddress >> 1; // Divide by 2 (right shift by 1)
-    this.checkAddressValidity(wordAddress);
+    this.checkAddressValidity(wordAddress, "get");
     const isUpperHWord = hwordAddress & 1; // Check if odd (1 for upper hword, 0 for lower)
 
     const word = this.ram[wordAddress];
@@ -78,7 +78,7 @@ export class RAM {
   set16(hwordAddress: number, value: number) {
     // Calculate the word address and hword offset within the word
     const wordAddress = hwordAddress >> 1; // Divide by 2 (right shift by 1)
-    this.checkAddressValidity(wordAddress);
+    this.checkAddressValidity(wordAddress, "set");
     const isUpperHWord = hwordAddress & 1; // Check if odd (1 for upper hword, 0 for lower)
 
     // Retrieve the existing word
