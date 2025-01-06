@@ -1,13 +1,31 @@
 import { assertEquals } from "@std/assert/equals";
-import { expAsm, expMachineCode } from "../test/data.ts";
+import {
+  b3s23Asm,
+  b3s23MachineCode,
+  expAsm,
+  expMachineCode,
+  textAsm,
+  textMachineCode,
+} from "../test/data.ts";
 import { assemble } from "./assemble.ts";
 import { ErrorWithLineContext } from "./core.ts";
+import { movementDemoAsm } from "../test/data.ts";
+import { movementDemoMachineCode } from "../test/data.ts";
 
-Deno.test("assemble exp", () => {
+function split(u32: number) {
+  return [u32 & 0xffff, u32 >>> 16];
+}
+
+function correct(asm: string, expectedMachineCode: Uint32Array) {
+  const expected = [...expectedMachineCode].flatMap((x) => split(x)).map((x) =>
+    x.toString(16).padStart(4, "0")
+  );
   try {
     assertEquals(
-      [...assemble(expAsm)].map((x) => x.toString(16).padStart(8, "0")),
-      [...expMachineCode].map((x) => x.toString(16).padStart(8, "0")),
+      [...assemble(asm)].flatMap((x) => split(x)).map((x) =>
+        x.toString(16).padStart(4, "0")
+      ),
+      expected,
     );
   } catch (error) {
     if (error instanceof ErrorWithLineContext) {
@@ -16,4 +34,23 @@ Deno.test("assemble exp", () => {
     }
     throw error;
   }
+}
+
+Deno.test("assemble exp", () => {
+  correct(expAsm, expMachineCode);
+});
+
+Deno.test("assemble movement-demo", () => {
+  correct(movementDemoAsm, movementDemoMachineCode);
+});
+
+Deno.test("assemble b3s23", () => {
+  // Lua removes trailing zero
+  const buf = new Uint32Array(b3s23MachineCode.length + 33 + 5);
+  buf.set(b3s23MachineCode);
+  correct(b3s23Asm, buf);
+});
+
+Deno.test("assemble text", () => {
+  correct(textAsm, textMachineCode);
 });

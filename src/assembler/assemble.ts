@@ -4,6 +4,7 @@ import {
   parseInstruction,
   validatePseudoImmediates,
 } from "./parser/parse-inst.ts";
+import { strToWords } from "./parser/parse-str.ts";
 import { parseUnsignedVal } from "./parser/parser-util.ts";
 
 type ItemRaw =
@@ -16,7 +17,12 @@ type ItemRaw =
     type: "word";
     value: number;
   }
-  | { type: "label"; is32: boolean; label: string };
+  | {
+    type: "label";
+    isWordBased: boolean;
+    immidiateHwordCount: number;
+    label: string;
+  };
 
 type ObjectCodeItem =
   & {
@@ -36,6 +42,9 @@ class Parser {
   private items: ObjectCodeItem[] = [];
   private symbolTable = new Map<string, number>();
   private addrToLineIndex = new Map<number, number>();
+  /**
+   * hword based address
+   */
   private addrAt = 256;
   constructor() {}
 
@@ -123,6 +132,9 @@ class Parser {
     } else if (cmd.match(/^\t?str /)) {
       this.parseStr(cmd, ctx);
     } else {
+      if (cmd.trim().length === 0) {
+        return;
+      }
       this.parseInstruction(cmd, ctx);
     }
   }
@@ -132,7 +144,7 @@ class Parser {
     let inst = parseInstruction(cmd, ctx);
     validatePseudoImmediates(inst, ctx);
     // pseudo immediates
-    let numPseudoImmediate = { value: 0 };
+    const numPseudoImmediate = { value: 0 };
 
     const ldi = () => {
       this.pushHword(0xe01e - numPseudoImmediate.value, ctx);
@@ -159,7 +171,16 @@ class Parser {
         case "label": {
           if (operand.isPseudo) {
             ldi();
-            this.pushLabel(operand, ctx);
+            // TODO: is this correct?
+            const info = inst.info.registers[operandIndex];
+            // if (typeof info === "number") {
+            //   throw new ErrorWithLineContext("Internal Error", ctx);
+            // }
+            this.pushLabel(
+              operand,
+              typeof info === "number" ? 2 : info.immidiateHwordCount,
+              ctx,
+            );
             modify(operandIndex);
           }
           break;
@@ -186,7 +207,8 @@ class Parser {
             ctx,
           );
         }
-        console.log(inst.operands, { inst, patIndex, pat, operandIndex });
+        // DEBUG
+        // console.log(inst.operands, { inst, patIndex, pat, operandIndex });
 
         const operand = inst.operands[patIndex] ?? (() => {
           throw new ErrorWithLineContext(
@@ -245,7 +267,7 @@ class Parser {
               // pseudo immediate is handled above
               throw new ErrorWithLineContext("Internal error", ctx);
             }
-            this.pushLabel(operand, ctx);
+            this.pushLabel(operand, operandInfo.immidiateHwordCount, ctx);
             break;
           }
           default: {
@@ -259,25 +281,9 @@ class Parser {
   private parseStr(cmd: string, ctx: LineContext) {
     this.align(2, ctx);
     const str = cmd.match(/\t?str (?<str>.*)/)?.groups?.str ?? "";
-    const strLitChars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ,.;:~0123456789()[]?!<>/\\+*%^'£_- |nt";
-
-    let chars = [...str];
-
-    while (chars.length > 0) {
-      let w = 0;
-      for (let i = 0; i < Math.min(5, chars.length); i++) {
-        const charCode = strLitChars.indexOf(chars[i]);
-        if (charCode === -1) {
-          throw new ErrorWithLineContext(
-            `Character '${chars[i]}' is not supported in strings.`,
-            ctx,
-          );
-        }
-        w += charCode * 2 ** (6 * i);
-      }
-      this.pushWord(w, ctx);
-      chars = chars.slice(6);
+    const words = strToWords(str, ctx);
+    for (const word of words) {
+      this.pushWord(word, ctx);
     }
   }
 
@@ -289,16 +295,20 @@ class Parser {
 
   pushLabel(
     label: ParsedOperand & { type: "label" },
+    immidiateHwordCount: number,
     { lineIndex }: LineContext,
   ) {
+    // TODO: is this correct?
+    const isWordBased = label.isWordBased;
     this.items.push({
       type: "label",
       label: label.label,
-      is32: label.is32,
+      isWordBased,
+      immidiateHwordCount,
       lineIndex,
     });
     this.addrToLineIndex.set(this.addrAt, lineIndex);
-    this.addrAt += label.is32 ? 2 : 1;
+    this.addrAt += immidiateHwordCount;
   }
 
   pushHword(value: number, { lineIndex }: LineContext) {
@@ -357,12 +367,16 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
             { lineIndex: item.lineIndex, lineSource: "" }, // TODO ctx
           );
         }
-        if (item.is32) {
-          // TODO: is this correct?
-          machineCode.push(addr & 0xffff, addr >>> 16);
+        const value = item.isWordBased ? (addr >> 1) : addr;
+        if (item.immidiateHwordCount === 1) {
+          machineCode.push(value);
+        } else if (item.immidiateHwordCount === 2) {
+          machineCode.push(value & 0xffff, value >>> 16);
         } else {
-          // TODO: is this correct?
-          machineCode.push(addr & 0xffff);
+          throw new ErrorWithLineContext("Internal error", {
+            lineIndex: item.lineIndex,
+            lineSource: "", // TODO
+          });
         }
         break;
       }

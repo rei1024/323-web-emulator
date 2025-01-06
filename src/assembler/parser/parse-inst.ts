@@ -115,7 +115,7 @@ export function parseInstruction(
 export type ParsedOperand = {
   type: "label";
   /** with @ */
-  is32: boolean;
+  isWordBased: boolean;
   /**
    * with !
    */
@@ -155,15 +155,15 @@ export function parseOperand(
 
   // Label or Pseudo immidiate label
   {
-    const { label, pi, is32 } = operand.match(
-      /^(?<pi>!)?(?<is32>@)?(?<label>[A-Za-z][A-Za-z0-9_]+)/,
+    const { label, pi, isWordBased } = operand.match(
+      /^(?<pi>!)?(?<isWordBased>@)?(?<label>[A-Za-z][A-Za-z0-9_]+)/,
     )
       ?.groups ?? {};
     if (label) {
       return {
         type: "label",
         isPseudo: pi != null,
-        is32: is32 != null,
+        isWordBased: isWordBased != null,
         label: label,
       };
     }

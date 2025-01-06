@@ -35,28 +35,28 @@ Deno.test("parseOperand", () => {
   assertEquals(parseOperand("@xyz", ctx), {
     type: "label",
     isPseudo: false,
-    is32: true,
+    isWordBased: true,
     label: "xyz",
   });
 
   assertEquals(parseOperand("!@xyz", ctx), {
     type: "label",
     isPseudo: true,
-    is32: true,
+    isWordBased: true,
     label: "xyz",
   });
 
   assertEquals(parseOperand("xyz", ctx), {
     type: "label",
     isPseudo: false,
-    is32: false,
+    isWordBased: false,
     label: "xyz",
   });
 
   assertEquals(parseOperand("!xyz", ctx), {
     type: "label",
     isPseudo: true,
-    is32: false,
+    isWordBased: false,
     label: "xyz",
   });
 });
