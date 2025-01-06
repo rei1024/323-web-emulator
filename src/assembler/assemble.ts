@@ -1,5 +1,6 @@
 import { ErrorWithLineContext, type LineContext } from "./core.ts";
-import { parseUnsignedVal } from "./parser-util.ts";
+import { parseInstruction } from "./parser/parse-inst.ts";
+import { parseUnsignedVal } from "./parser/parser-util.ts";
 
 type ItemRaw = { type: "label-def"; label: string } | {
   type: "hword";
@@ -112,13 +113,14 @@ class Parser {
     } else if (cmd.match(/^\t?str /)) {
       this.parseStr(cmd, ctx);
     } else {
-      this.parseInst(cmd, ctx);
+      this.parseInstruction(cmd, ctx);
     }
   }
 
-  private parseInst(cmd: string, ctx: LineContext) {
+  private parseInstruction(cmd: string, ctx: LineContext) {
     cmd = cmd.trim();
-    const match = cmd.trim().match(/^[a-z] ()$/);
+    const inst = parseInstruction(cmd, ctx);
+    TODO;
   }
 
   private parseStr(cmd: string, ctx: LineContext) {
@@ -204,6 +206,10 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
       }
       case "word": {
         machineCode.push(item.value & 0xffff, item.value >>> 16);
+        break;
+      }
+      default: {
+        item satisfies never;
       }
     }
   }
@@ -227,7 +233,7 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
 /**
  * @returns hword
  */
-function parseImmidiate(objectCode: ObjectCode, imm: TODO): number {
+function resolveImmidiate(objectCode: ObjectCode, imm: TODO): number {
   // TODO
 }
 

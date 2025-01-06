@@ -1,4 +1,4 @@
-import { ErrorWithLineContext, type LineContext } from "./core.ts";
+import { ErrorWithLineContext, type LineContext } from "../core.ts";
 
 export function parseUnsignedVal(v: string, ctx: LineContext): number {
   // Values are all <= 32-bit. TypeScript uses 64-bit floats (doubles),
@@ -28,4 +28,20 @@ export function parseUnsignedVal(v: string, ctx: LineContext): number {
       ctx,
     );
   }
+}
+
+export function parseInteger(v: string, ctx: LineContext): number {
+  if (v.startsWith("-")) {
+    // Apply bitwise AND with 0xffffffff to mimic 32-bit signed behavior
+    return toUnsigned32((-parseUnsignedVal(v.slice(1), ctx)) & 0xffffffff);
+  } else {
+    return parseUnsignedVal(v, ctx);
+  }
+}
+
+const buf = new Uint32Array([0]);
+
+function toUnsigned32(x: number) {
+  buf[0] = x;
+  return buf[0];
 }

@@ -1,10 +1,13 @@
-import { ErrorWithLineContext, type LineContext } from "./core.ts";
+import { ErrorWithLineContext, type LineContext } from "../core.ts";
+import { parseInteger } from "../parser/parser-util.ts";
 
-const instructionSet: Record<string, {
+export type InstructionInfo = {
   opcode: number;
   argsPattern: `${"R" | "I" | ""}${"R" | "I" | ""}${"R" | "I" | ""}`;
   registers: number[];
-}[]> = {
+};
+
+export const instructionSet: Record<string, InstructionInfo[]> = {
   add: [{ opcode: 0x0000, argsPattern: "RRR", registers: [2, 3, 4] }],
   sub: [{ opcode: 0x1000, argsPattern: "RRR", registers: [3, 2, 4] }],
   mul: [{ opcode: 0x2000, argsPattern: "RRR", registers: [2, 3, 4] }],
@@ -38,12 +41,21 @@ const instructionSet: Record<string, {
   hlt: [{ opcode: 0xeeee, argsPattern: "", registers: [] }],
 };
 
-const allOp = new Set(Object.keys(instructionSet));
+export type ParsedInstruction = {
+  /** `add`, `sub`, ... */
+  op: string;
+  operands: ParsedOperand[];
+  info: InstructionInfo;
+};
 
-export function parseInstruction(inst: string, ctx: LineContext) {
+export function parseInstruction(
+  inst: string,
+  ctx: LineContext,
+): ParsedInstruction {
   inst = inst.trim();
-  const { op, argStr } = inst.match(/^(?<op>[a-z]) (?<argStr>.*)$/)?.groups ??
+  const { op, argStr } = inst.match(/^(?<op>[a-z]+) (?<argStr>.*)$/)?.groups ??
     {};
+
   if (!op || !argStr) {
     throw new ErrorWithLineContext("Malformed instruction.", ctx);
   }
@@ -52,39 +64,73 @@ export function parseInstruction(inst: string, ctx: LineContext) {
     throw new ErrorWithLineContext(`Unrecognised opcode mnemonic '${op}'`, ctx);
   }
   const args = argStr.split(",");
+  const parsedArgs = args.map((a) => parseOperand(a, ctx));
 
   for (const info of infoList) {
     if (args.length !== info.argsPattern.length) {
       throw new ErrorWithLineContext(`Number of operands is incorrect`, ctx);
     }
-    if ([...info.argsPattern].every((pat) => TODO)) {
-      // TODO: implement
+    if (
+      [...info.argsPattern].every((pat, i) => {
+        const parsedArg = parsedArgs[i];
+        return (pat === "R" && parsedArg.type === "register") ||
+          (pat === "I" && parsedArg.type !== "register");
+      })
+    ) {
+      return {
+        op,
+        operands: parsedArgs,
+        info,
+      };
     }
   }
+
+  throw new ErrorWithLineContext("Operand kind is incorrect", ctx);
 }
 
-// function argType(s)
-// 	if s:match("^x[0-9A-F]$") then
-// 		return "register"
-// 	elseif s:match("^[@a-zA-Z_]") then
-// 		return "label"
-// 	elseif s:match("^%-?[0-9]") then
-// 		return "number"
-// 	else
-// 		return "unknown"
-// 	end
-// end
-
-function parseOperand(
-  operand: string,
-):
-  | { type: "immediate"; value: number }
+export type ParsedOperand =
   | {
+    /**
+     * 123
+     */
+    type: "immediate";
+    value: number;
+  }
+  | {
+    /**
+     * !0x00
+     */
     type: "pseudo-immediate";
     value: number;
   }
-  | { type: "register"; index: number }
-  | { type: "unknown"; raw: string } {
+  | {
+    /**
+     * !@abc
+     */
+    type: "pseudo-immediate-label";
+    // without !
+    label: string;
+  }
+  | {
+    /**
+     * xn
+     */
+    type: "register";
+    index: number;
+  }
+  | {
+    type: "label";
+    /**
+     * without @
+     */
+    label: string;
+  };
+
+export function parseOperand(
+  operand: string,
+  ctx: LineContext,
+): ParsedOperand {
+  // Register
   {
     const index = operand.match(/^x(?<index>[0-9A-F])$/)?.groups?.index;
     if (index) {
@@ -92,5 +138,39 @@ function parseOperand(
     }
   }
 
-  // TODO
+  // Label or Pseudo immidiate label
+  {
+    const { label, pi } = operand.match(
+      /^(?<pi>!?)@(?<label>[A-Za-z][A-Za-z0-9_]+)/,
+    )
+      ?.groups ?? {};
+    if (label) {
+      if (pi) {
+        return { type: "pseudo-immediate-label", label };
+      } else {
+        return { type: "label", label };
+      }
+    }
+  }
+
+  {
+    // immediate number or pseudo immidiate number
+    const { num, pi } =
+      operand.match(/^(?<pi>!?)(?<num>[-A-Za-z0-9_]+)/)?.groups ?? {};
+    if (num) {
+      if (pi) {
+        return {
+          type: "pseudo-immediate",
+          value: parseInteger(num, ctx),
+        };
+      } else {
+        return {
+          type: "immediate",
+          value: parseInteger(num, ctx),
+        };
+      }
+    }
+  }
+
+  throw new ErrorWithLineContext(`Malformed operand '${operand}'`, ctx);
 }
