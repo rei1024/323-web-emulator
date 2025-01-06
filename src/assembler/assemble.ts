@@ -33,6 +33,7 @@ type ObjectCodeItem =
 type ObjectCode = {
   items: ObjectCodeItem[];
   symbolTable: Map<string, number>;
+  addrToLineIndex: Map<number, number>;
 };
 
 class Parser {
@@ -54,6 +55,7 @@ class Parser {
     return {
       items: this.items,
       symbolTable: this.symbolTable,
+      addrToLineIndex: this.addrToLineIndex,
     };
   }
 
@@ -397,7 +399,9 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
   return new Uint32Array(u32);
 }
 
-export function assemble(src: string): Uint32Array {
+export function assemble(
+  src: string,
+): { objectCode: ObjectCode; machineCode: Uint32Array } {
   const objectCode = parseAssembly(src);
-  return linkObjectCode(objectCode);
+  return { objectCode, machineCode: linkObjectCode(objectCode) };
 }

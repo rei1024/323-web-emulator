@@ -22,7 +22,7 @@ function correct(asm: string, expectedMachineCode: Uint32Array) {
   );
   try {
     assertEquals(
-      [...assemble(asm)].flatMap((x) => split(x)).map((x) =>
+      [...assemble(asm).machineCode].flatMap((x) => split(x)).map((x) =>
         x.toString(16).padStart(4, "0")
       ),
       expected,
