@@ -33,6 +33,7 @@ type ObjectCodeItem =
 type ObjectCode = {
   items: ObjectCodeItem[];
   symbolTable: Map<string, number>;
+  // TODO: { hwordCount: number; lineIndex: number; }
   addrToLineIndex: Map<number, number>;
 };
 
@@ -146,13 +147,15 @@ class Parser {
     const numPseudoImmediate = { value: 0 };
 
     const ldi = () => {
+      // ld IMM32,{xE, xD, ...}
       this.pushHword(0xe01e - numPseudoImmediate.value, ctx);
     };
     const modify = (operandIndex: number) => {
       inst = structuredClone(inst);
+      const LAST_USABLE_REGISTER = 0xe;
       inst.operands[operandIndex] = {
         type: "register",
-        registerIndex: 0xe - numPseudoImmediate.value,
+        registerIndex: LAST_USABLE_REGISTER - numPseudoImmediate.value,
       };
       numPseudoImmediate.value++;
     };

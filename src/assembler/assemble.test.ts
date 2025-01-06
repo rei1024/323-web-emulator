@@ -16,17 +16,17 @@ function split(u32: number) {
   return [u32 & 0xffff, u32 >>> 16];
 }
 
-function correct(asm: string, expectedMachineCode: Uint32Array) {
-  const expected = [...expectedMachineCode].flatMap((x) => split(x)).map((x) =>
+function toHWordString(machineCode: Uint32Array): string[] {
+  return [...machineCode].flatMap((x) => split(x)).map((x) =>
     x.toString(16).padStart(4, "0")
   );
+}
+
+function correct(asm: string, expectedMachineCode: Uint32Array) {
+  const expected = toHWordString(expectedMachineCode);
+
   try {
-    assertEquals(
-      [...assemble(asm).machineCode].flatMap((x) => split(x)).map((x) =>
-        x.toString(16).padStart(4, "0")
-      ),
-      expected,
-    );
+    assertEquals(toHWordString(assemble(asm).machineCode), expected);
   } catch (error) {
     if (error instanceof ErrorWithLineContext) {
       error.message = error.message + " Ctx:" + JSON.stringify(error.ctx);

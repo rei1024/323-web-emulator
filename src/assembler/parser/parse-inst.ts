@@ -3,6 +3,7 @@ import { parseInteger } from "../parser/parser-util.ts";
 
 export type InstructionInfo = {
   opcode: number;
+  // TODO: combine argsPattern and registers?
   argsPattern: `${"R" | "I" | ""}${"R" | "I" | ""}${"R" | "I" | ""}`;
   registers: (number | { immidiateHwordCount: number })[];
 };
