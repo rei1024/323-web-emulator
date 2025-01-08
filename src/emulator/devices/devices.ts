@@ -33,10 +33,14 @@ export class Display {
     return this.array.map((a) => a.slice());
   }
 
+  getArrayTransposed(): (0 | 1)[][] {
+    return transpose(this.getArray()).reverse();
+  }
+
   pretty(): string[] {
-    return transpose(this.getArray()).map((a) =>
+    return this.getArrayTransposed().map((a) =>
       a.map((x) => x === 0 ? "  " : "o ").join("")
-    ).reverse();
+    );
   }
 }
 
@@ -64,7 +68,7 @@ export class OutDeviceImpl implements OutDevice {
   }
 
   getDisplayOutput() {
-    return this.display.getArray();
+    return this.display.getArrayTransposed();
   }
 
   prettyDisplay() {

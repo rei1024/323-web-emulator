@@ -5,7 +5,7 @@ import {
   validatePseudoImmediates,
 } from "./parser/parse-inst.ts";
 import { strToWords } from "./parser/parse-str.ts";
-import { parseUnsignedVal } from "./parser/parser-util.ts";
+import { parseInteger, parseUnsignedVal } from "./parser/parser-util.ts";
 
 type ItemRaw =
   | { type: "label-def"; label: string }
@@ -110,9 +110,9 @@ class Parser {
 
       const size = cmd.match(/^\t?dh /) ? "1" : "2";
       if (size === "1") {
-        this.pushHword(parseUnsignedVal(val, ctx), ctx);
+        this.pushHword(parseInteger(val, ctx), ctx);
       } else {
-        this.pushWord(parseUnsignedVal(val, ctx), ctx);
+        this.pushWord(parseInteger(val, ctx), ctx);
       }
     } else if (cmd.match(/^\t?rep /)) {
       const { val, amt } = cmd.match(/rep\s+(?<val>\S+)\s+(?<amt>\S+)\s*$/)
@@ -126,8 +126,9 @@ class Parser {
       }
 
       const amtVal = parseUnsignedVal(amt, ctx);
+      const word = parseInteger(val, ctx);
       for (let i = 0; i < amtVal; i++) {
-        this.pushWord(parseUnsignedVal(val, ctx), ctx);
+        this.pushWord(word, ctx);
       }
     } else if (cmd.match(/^\t?str /)) {
       this.parseStr(cmd, ctx);

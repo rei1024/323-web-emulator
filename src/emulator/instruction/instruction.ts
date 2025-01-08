@@ -226,6 +226,20 @@ function toHex(x: number): string {
   return x.toString(16).toUpperCase();
 }
 
+function toHexWithPrefix(x: number): string {
+  const buf = new Uint32Array([0]);
+
+  function toUnsigned32(x: number) {
+    buf[0] = x;
+    return buf[0];
+  }
+
+  if (x < 0) {
+    x = toUnsigned32(x);
+  }
+  return "0x" + toHex(x);
+}
+
 export function stringifyInstruction(inst: Instruction): string {
   switch (inst.type) {
     case I_SUB: {
@@ -259,11 +273,11 @@ export function stringifyInstruction(inst: Instruction): string {
     case I_JFI:
     case I_JNFI: {
       const mnemonic = typeToMnemonic[inst.type];
-      return `${mnemonic} <${toHex(inst.imm16)}>`;
+      return `${mnemonic} ${toHexWithPrefix(inst.imm16)}`;
     }
     case I_LDI: {
       const mnemonic = typeToMnemonic[inst.type];
-      return `${mnemonic} <${toHex(inst.imm32)}>,x${toHex(inst.xZ)}`;
+      return `${mnemonic} ${toHexWithPrefix(inst.imm32)},x${toHex(inst.xZ)}`;
     }
     case I_LDR: {
       const mnemonic = typeToMnemonic[inst.type];

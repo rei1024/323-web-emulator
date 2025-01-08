@@ -1,11 +1,19 @@
 {
   "tasks": {
     "t": "deno test",
-    "w": "deno test --watch"
+    "w": "deno test --watch",
+    "build": "deno run --allow-env --allow-read --allow-write --allow-run build.ts",
+    "dev": "deno run --watch=./src,./app,style.css --allow-env --allow-read --allow-write --allow-net --allow-run build.ts with-serve"
   },
   "compilerOptions": {
     "exactOptionalPropertyTypes": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "lib": [
+      "deno.ns",
+      "esnext",
+      "dom",
+      "dom.iterable"
+    ]
   },
   "exclude": [],
   "lint": {
@@ -24,6 +32,7 @@
     "indentWidth": 2
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@^1.0.10"
+    "@std/assert": "jsr:@std/assert@^1.0.10",
+    "esbuild": "npm:esbuild@^0.24.2"
   }
 }

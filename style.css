@@ -1,0 +1,7 @@
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+#display-canvas {
+  border: 1px solid #ccc;
+}

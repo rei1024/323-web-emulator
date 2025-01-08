@@ -86,6 +86,7 @@ const nopOutDevice: OutDevice = {
 };
 
 export class Emulator {
+  private halted: boolean = false;
   /**
    * hword-based addresses
    */
@@ -104,8 +105,13 @@ export class Emulator {
     return this.registers.pretty();
   }
 
+  isHalted() {
+    return this.halted;
+  }
+
   getState() {
     return {
+      stepCount: this.stepCount,
       pc: this.pc,
       registers: this.registers.getState(),
       flag: this.flag,
@@ -251,7 +257,7 @@ export class Emulator {
     }
   }
 
-  private getCurrentInst() {
+  getCurrentInst() {
     const currentPC = this.pc;
     const instructionHWord = this.ram.get16(currentPC);
     return decodeInstruction(
@@ -262,6 +268,9 @@ export class Emulator {
   }
 
   step(): "continue" | "halt" {
+    if (this.halted) {
+      return "halt";
+    }
     const { inst, hwordCount } = this.getCurrentInst();
     // DEBUG;
     // console.log(
@@ -276,6 +285,7 @@ export class Emulator {
     this.stepCount++;
 
     if (inst.type === I_HLT) {
+      this.halted = true;
       return "halt";
     }
 
