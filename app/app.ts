@@ -1,4 +1,3 @@
-import { ErrorWithLineContext } from "../src/assembler/core.ts";
 import {
   $currentInstruction,
   $displayCanvas,
