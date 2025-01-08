@@ -4,21 +4,17 @@ import { Emulator } from "../src/emulator/emulator.ts";
 import { stringifyInstruction } from "../src/emulator/instruction/instruction.ts";
 
 export class EmulatorManager {
-  private emulator: Emulator | null = null;
+  private emulator: Emulator;
+  private outDevice: OutDeviceImpl;
 
-  private outDevice: OutDeviceImpl | null = null;
-
-  /**
-   * @throws
-   */
-  load(src: string) {
+  constructor(src: string) {
     const { objectCode, machineCode } = assemble(src);
     this.outDevice = new OutDeviceImpl();
     this.emulator = new Emulator(machineCode, { outDevice: this.outDevice });
   }
 
   stepN(n: number) {
-    const emulator = this.getEmulatorOrThrow();
+    const emulator = this.emulator;
     for (let i = 0; i < n; i++) {
       const result = emulator.step();
       if (result === "halt") {
@@ -29,34 +25,22 @@ export class EmulatorManager {
   }
 
   getState() {
-    return this.emulator?.getState();
+    return this.emulator.getState();
   }
 
   isHalted() {
-    return this.emulator?.isHalted() ?? false;
+    return this.emulator.isHalted();
   }
 
   getDisplay() {
-    return this.outDevice?.getDisplayOutput();
+    return this.outDevice.getDisplayOutput();
   }
 
   getCurrentInstructionString(): string {
-    if (this.emulator == null) {
-      return "";
-    }
-
     try {
       return stringifyInstruction(this.emulator.getCurrentInst().inst);
     } catch (error) {
       return "";
     }
-  }
-
-  private getEmulatorOrThrow() {
-    const emulator = this.emulator;
-    if (emulator == null) {
-      throw new Error("internal");
-    }
-    return emulator;
   }
 }

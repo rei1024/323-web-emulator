@@ -20,13 +20,13 @@ export class App {
   private state: AppState = "Init";
   private prevState: AppState | undefined;
   private valve: Valve;
-  private emulatorManager = new EmulatorManager();
+  private emulatorManager: EmulatorManager | null = null;
   private message: string = "";
   private displayUI = new DisplayUI($displayCanvas);
   private registersUI = new RegistersUI($registers);
   constructor() {
     this.valve = new Valve((value) => {
-      this.emulatorManager.stepN(value);
+      this.emulatorManager?.stepN(value);
       this.render();
     }, {
       frequency: 30,
@@ -34,7 +34,7 @@ export class App {
   }
 
   render() {
-    if (this.emulatorManager.isHalted()) {
+    if (this.emulatorManager?.isHalted()) {
       this.state = "Halted";
     }
 
@@ -47,13 +47,14 @@ export class App {
     renderMessage(this.message);
     renderFrequency($frequencyOutput, this.valve.frequency);
 
-    const state = this.emulatorManager.getState();
-    if (state != undefined) {
+    const emulatorManager = this.emulatorManager;
+    if (emulatorManager != undefined) {
+      const state = emulatorManager.getState();
       $programCounter.textContent = "0x" +
         state.pc.toString(16);
       $stepNumber.textContent = state.stepCount.toString();
-      this.displayUI.render(this.emulatorManager.getDisplay()!);
-      $currentInstruction.textContent = this.emulatorManager
+      this.displayUI.render(emulatorManager.getDisplay());
+      $currentInstruction.textContent = emulatorManager
         .getCurrentInstructionString();
       this.registersUI.render(state.registers);
     }
@@ -70,7 +71,7 @@ export class App {
       return;
     }
     try {
-      this.emulatorManager.load(value);
+      this.emulatorManager = new EmulatorManager(value);
       this.state = "Stop";
     } catch (error) {
       this.message = getErrorMessage(error);
@@ -94,7 +95,7 @@ export class App {
   }
 
   step() {
-    this.emulatorManager.stepN(1);
+    this.emulatorManager?.stepN(1);
     this.render();
   }
 }
