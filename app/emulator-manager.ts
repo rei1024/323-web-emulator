@@ -1,4 +1,5 @@
 import { assemble } from "../src/assembler/assemble.ts";
+import { ErrorWithLineContext } from "../src/assembler/core.ts";
 import {
   InDeviceImpl,
   type KeyboardInterface,
@@ -6,6 +7,15 @@ import {
 } from "../src/emulator/devices/devices.ts";
 import { Emulator } from "../src/emulator/emulator.ts";
 import { stringifyInstruction } from "../src/emulator/instruction/instruction.ts";
+
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof ErrorWithLineContext) {
+    return error.message +
+      ` at '${error.ctx.lineSource}' line ${error.ctx.lineIndex + 1}`;
+  } else {
+    return error instanceof Error ? error.message : "Unknown Error";
+  }
+}
 
 export class EmulatorManager {
   private emulator: Emulator;

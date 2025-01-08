@@ -1,7 +1,7 @@
 {
   "deno.enable": true,
   "files.readonlyInclude": {
-    "/node_modules/**/*": true
+    "dist/**/*": true
   },
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "denoland.vscode-deno",

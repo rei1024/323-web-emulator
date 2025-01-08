@@ -14,7 +14,7 @@ import { getKey } from "./components/keyboard.ts";
 import { renderMessage } from "./components/message.ts";
 import { RegistersUI } from "./components/registers.ts";
 import type { AppState } from "./core.ts";
-import { EmulatorManager } from "./emulator-manager.ts";
+import { EmulatorManager, getErrorMessage } from "./emulator-manager.ts";
 import { Valve } from "./util/valve.ts";
 
 export class App {
@@ -112,14 +112,5 @@ export class App {
         : result.message;
     }
     this.render();
-  }
-}
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof ErrorWithLineContext) {
-    return error.message +
-      ` at '${error.ctx.lineSource}' line ${error.ctx.lineIndex + 1}`;
-  } else {
-    return error instanceof Error ? error.message : "Unknown Error";
   }
 }
