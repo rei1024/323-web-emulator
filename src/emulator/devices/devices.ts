@@ -1,11 +1,32 @@
+import { toUnsigned32 } from "../../util.ts";
 import type { InDevice, OutDevice } from "../emulator.ts";
 
+export interface KeyboardInterface {
+  getKey(): "none" | "left" | "up" | "right" | "down";
+}
+
 export class InDeviceImpl implements InDevice {
-  constructor() {}
+  constructor(private config: { keyboard: KeyboardInterface }) {}
   getData({ pin }: { pin: number }): { data: number; flag: 0 | 1 } {
+    if (pin === 0xD) {
+      const key = this.config.keyboard.getKey();
+      return {
+        data: toUnsigned32(
+          {
+            none: 0,
+            left: -1,
+            up: -2,
+            right: -3,
+            down: -4,
+          }[key],
+        ),
+        flag: 0,
+      };
+    }
     throw new Error("Method not implemented.");
   }
 }
+
 const generateArray = <T>(n: number, f: (_: number) => T) =>
   Array(n).fill(0).map((_, i) => f(i));
 
@@ -24,6 +45,8 @@ export class Display {
     }
     const writeData = this.currentData;
     this.currentData = null;
+    // NOTE: docs
+    data = data & 0x1f;
     this.array[data] = [...writeData.toString(2).padStart(32, "0")].map((x) =>
       x === "0" ? 0 : 1
     );

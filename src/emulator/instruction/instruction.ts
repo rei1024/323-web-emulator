@@ -1,4 +1,5 @@
 import { rshift } from "../../bits.ts";
+import { toUnsigned32 } from "../../util.ts";
 import {
   I_ADD,
   I_AND,
@@ -227,13 +228,6 @@ function toHex(x: number): string {
 }
 
 function toHexWithPrefix(x: number): string {
-  const buf = new Uint32Array([0]);
-
-  function toUnsigned32(x: number) {
-    buf[0] = x;
-    return buf[0];
-  }
-
   if (x < 0) {
     x = toUnsigned32(x);
   }

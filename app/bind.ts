@@ -21,3 +21,8 @@ export const $stepNumber = $type("#step-number", HTMLElement);
 export const $displayCanvas = $type("#display-canvas", HTMLCanvasElement);
 export const $currentInstruction = $type("#current-instruction", HTMLElement);
 export const $registers = $type("#registers", HTMLElement);
+
+export const $keyUp = $type("#key-up", HTMLButtonElement);
+export const $keyLeft = $type("#key-left", HTMLButtonElement);
+export const $keyRight = $type("#key-right", HTMLButtonElement);
+export const $keyDown = $type("#key-down", HTMLButtonElement);

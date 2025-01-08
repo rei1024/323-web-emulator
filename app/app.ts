@@ -10,6 +10,7 @@ import {
 import { renderControlButtons } from "./components/control-buttons.ts";
 import { DisplayUI } from "./components/display.ts";
 import { renderFrequency } from "./components/frequency.ts";
+import { getKey } from "./components/keyboard.ts";
 import { renderMessage } from "./components/message.ts";
 import { RegistersUI } from "./components/registers.ts";
 import type { AppState } from "./core.ts";
@@ -26,8 +27,7 @@ export class App {
   private registersUI = new RegistersUI($registers);
   constructor() {
     this.valve = new Valve((value) => {
-      this.emulatorManager?.stepN(value);
-      this.render();
+      this.stepN(value);
     }, {
       frequency: 30,
     });
@@ -52,7 +52,7 @@ export class App {
       const state = emulatorManager.getState();
       $programCounter.textContent = "0x" +
         state.pc.toString(16);
-      $stepNumber.textContent = state.stepCount.toString();
+      $stepNumber.textContent = state.stepCount.toLocaleString();
       this.displayUI.render(emulatorManager.getDisplay());
       $currentInstruction.textContent = emulatorManager
         .getCurrentInstructionString();
@@ -64,6 +64,7 @@ export class App {
 
   reset(value: string) {
     this.message = "";
+    this.registersUI.initialize();
     if (value.trim() === "") {
       this.message = "Program is empty";
       this.state = "Error";
@@ -71,7 +72,11 @@ export class App {
       return;
     }
     try {
-      this.emulatorManager = new EmulatorManager(value);
+      this.emulatorManager = new EmulatorManager(value, {
+        getKey() {
+          return getKey();
+        },
+      });
       this.state = "Stop";
     } catch (error) {
       this.message = getErrorMessage(error);
@@ -95,7 +100,17 @@ export class App {
   }
 
   step() {
-    this.emulatorManager?.stepN(1);
+    this.stepN(1);
+  }
+
+  private stepN(n: number) {
+    const result = this.emulatorManager?.stepN(n);
+    if (result instanceof Error) {
+      this.state = "Error";
+      this.message = result.cause instanceof Error
+        ? result.cause.message
+        : result.message;
+    }
     this.render();
   }
 }

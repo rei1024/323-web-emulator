@@ -1,3 +1,4 @@
+import { toUnsigned32 } from "../../util.ts";
 import { ErrorWithLineContext, type LineContext } from "../core.ts";
 
 export function parseUnsignedVal(v: string, ctx: LineContext): number {
@@ -37,11 +38,4 @@ export function parseInteger(v: string, ctx: LineContext): number {
   } else {
     return parseUnsignedVal(v, ctx);
   }
-}
-
-const buf = new Uint32Array([0]);
-
-function toUnsigned32(x: number) {
-  buf[0] = x;
-  return buf[0];
 }

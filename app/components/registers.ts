@@ -1,3 +1,4 @@
+import type { initialize } from "esbuild";
 import { chunk } from "../util/chunk.ts";
 import { create } from "../util/create.ts";
 
@@ -6,7 +7,7 @@ import { create } from "../util/create.ts";
  */
 const getNumberOfCols = (): number => {
   const width = window.innerWidth;
-  if (width < 768) {
+  if (width < 992) {
     return 4;
   }
   return 8;
@@ -79,10 +80,14 @@ const createTable = (): { table: HTMLTableElement; cells: HTMLElement[] } => {
 };
 
 export class RegistersUI {
-  private cells: HTMLElement[];
-  constructor($root: HTMLElement) {
+  private cells: HTMLElement[] = [];
+  constructor(private $root: HTMLElement) {
+    this.initialize();
+  }
+
+  initialize() {
     const { table, cells } = createTable();
-    $root.replaceChildren(table);
+    this.$root.replaceChildren(table);
     this.cells = cells;
   }
 
