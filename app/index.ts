@@ -2,6 +2,7 @@ import { App } from "./app.ts";
 import {
   $assemblyInputTextarea,
   $frequencyInput,
+  $ramDetails,
   $resetButton,
   $selectFileInput,
   $stepButton,
@@ -35,4 +36,10 @@ $toggleButton.addEventListener("click", () => {
 
 $stepButton.addEventListener("click", () => {
   app.step();
+});
+
+$ramDetails.addEventListener("toggle", () => {
+  if ($ramDetails.open) {
+    app.render();
+  }
 });

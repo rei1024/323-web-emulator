@@ -3,6 +3,8 @@ import {
   $displayCanvas,
   $frequencyOutput,
   $programCounter,
+  $ram,
+  $ramDetails,
   $registers,
   $stepNumber,
 } from "./bind.ts";
@@ -11,6 +13,7 @@ import { DisplayUI } from "./components/display.ts";
 import { renderFrequency } from "./components/frequency.ts";
 import { getKey } from "./components/keyboard.ts";
 import { renderMessage } from "./components/message.ts";
+import { RAMUI } from "./components/ram.ts";
 import { RegistersUI } from "./components/registers.ts";
 import type { AppState } from "./core.ts";
 import { EmulatorManager, getErrorMessage } from "./emulator-manager.ts";
@@ -24,6 +27,7 @@ export class App {
   private message: string = "";
   private displayUI = new DisplayUI($displayCanvas);
   private registersUI = new RegistersUI($registers);
+  private ramUI = new RAMUI($ram);
   constructor() {
     this.valve = new Valve((value) => {
       this.stepN(value);
@@ -56,6 +60,9 @@ export class App {
       $currentInstruction.textContent = emulatorManager
         .getCurrentInstructionString();
       this.registersUI.render(state.registers);
+      if ($ramDetails.open) {
+        this.ramUI.render(state.ram);
+      }
     }
 
     this.prevState = this.state;
@@ -64,6 +71,7 @@ export class App {
   reset(value: string) {
     this.message = "";
     this.registersUI.initialize();
+    this.ramUI.initialize();
     if (value.trim() === "") {
       this.message = "Program is empty";
       this.state = "Error";

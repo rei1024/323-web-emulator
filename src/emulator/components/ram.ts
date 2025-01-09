@@ -11,12 +11,19 @@ export class RAM {
 
   private static readonly INVALID_ADDRESS_LIMIT = 128;
 
+  private maxAccessAddress = RAM.INVALID_ADDRESS_LIMIT;
+
+  getMaxAccessAddress(): number {
+    return this.maxAccessAddress;
+  }
+
   private checkAddressValidity(address: number, kind: "get" | "set") {
     if (address < 0 || address < RAM.INVALID_ADDRESS_LIMIT) {
       throw new Error(
         `Memfault: Attempted to access invalid address ${address} while ${kind}ting`,
       );
     }
+    this.maxAccessAddress = Math.max(this.maxAccessAddress, address);
   }
 
   getState(): number[] {
@@ -25,6 +32,9 @@ export class RAM {
 
   setArray(array: Uint32Array, offset?: number) {
     this.ram.set(array, offset);
+    this.maxAccessAddress = Math.max(
+      this.maxAccessAddress + array.length + (offset ?? 0),
+    );
   }
 
   /**

@@ -26,3 +26,6 @@ export const $keyUp = $type("#key-up", HTMLButtonElement);
 export const $keyLeft = $type("#key-left", HTMLButtonElement);
 export const $keyRight = $type("#key-right", HTMLButtonElement);
 export const $keyDown = $type("#key-down", HTMLButtonElement);
+
+export const $ramDetails = $type("#ram-details", HTMLDetailsElement);
+export const $ram = $type("#ram", HTMLElement);
