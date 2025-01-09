@@ -23,10 +23,12 @@ export class EmulatorManager {
   private inDevice: InDeviceImpl;
 
   constructor(src: string, keyboard: KeyboardInterface) {
-    const { objectCode, machineCode } = assemble(src);
+    const { startingPC, machineCode } = assemble(src);
     this.outDevice = new OutDeviceImpl();
     this.inDevice = new InDeviceImpl({ keyboard });
     this.emulator = new Emulator(machineCode, {
+      startingPC,
+    }, {
       outDevice: this.outDevice,
       inDevice: this.inDevice,
     });

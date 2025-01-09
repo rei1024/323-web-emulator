@@ -1,4 +1,8 @@
-import { ErrorWithLineContext, type LineContext } from "./core.ts";
+import {
+  ErrorWithLineContext,
+  type LineContext,
+  PROGRAM_ADDR_START_HWORD,
+} from "./core.ts";
 import {
   type ParsedOperand,
   parseInstruction,
@@ -44,7 +48,7 @@ class Parser {
   /**
    * hword based address
    */
-  private addrAt = 256;
+  private addrAt = PROGRAM_ADDR_START_HWORD;
   constructor() {}
 
   parse(src: string): ObjectCode {
@@ -405,7 +409,9 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
 
 export function assemble(
   src: string,
-): { objectCode: ObjectCode; machineCode: Uint32Array } {
+): { objectCode: ObjectCode; startingPC: number; machineCode: Uint32Array } {
   const objectCode = parseAssembly(src);
-  return { objectCode, machineCode: linkObjectCode(objectCode) };
+  const startingPC = objectCode.symbolTable.get("start") ??
+    PROGRAM_ADDR_START_HWORD;
+  return { objectCode, startingPC, machineCode: linkObjectCode(objectCode) };
 }

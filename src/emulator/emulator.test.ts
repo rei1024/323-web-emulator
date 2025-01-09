@@ -23,7 +23,7 @@ Deno.test("Emulator run exp", () => {
 
 Deno.test("Emulator run text", () => {
   const outDevice = new OutDeviceImpl();
-  const emulator = new Emulator(textMachineCode, {
+  const emulator = new Emulator(textMachineCode, {}, {
     outDevice,
   });
   for (let i = 0; i < 10000; i++) {

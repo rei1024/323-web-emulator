@@ -31,6 +31,7 @@ import {
 import { Cache } from "./components/cache.ts";
 import { RAM } from "./components/ram.ts";
 import { Registers } from "./components/registers.ts";
+import { PROGRAM_ADDR_START_HWORD } from "../assembler/core.ts";
 
 const airthOpMap = {
   [I_ADD]: Func.add,
@@ -90,7 +91,7 @@ export class Emulator {
   /**
    * hword-based addresses
    */
-  private pc = 256; // Starting address
+  private pc = PROGRAM_ADDR_START_HWORD; // Starting address
   private stepCount = 0;
 
   private registers = new Registers();
@@ -122,13 +123,16 @@ export class Emulator {
 
   constructor(
     machineCode: Uint32Array,
+    // TODO: incorporate to save-state
+    { startingPC }: { startingPC?: number | undefined } = {},
     devices: {
       inDevice?: InDevice;
       outDevice?: OutDevice;
     } = {},
   ) {
     // Load machine code into RAM after column 0
-    this.ram.setArray(machineCode, 128);
+    this.ram.setArray(machineCode, PROGRAM_ADDR_START_HWORD >> 1);
+    this.pc = startingPC ?? PROGRAM_ADDR_START_HWORD;
     this.inDevice = devices.inDevice ?? nopInDevice;
     this.outDevice = devices.outDevice ?? nopOutDevice;
   }

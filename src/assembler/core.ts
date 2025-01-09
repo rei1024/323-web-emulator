@@ -8,3 +8,5 @@ export class ErrorWithLineContext extends Error {
     super(message);
   }
 }
+
+export const PROGRAM_ADDR_START_HWORD = 256;
