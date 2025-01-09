@@ -16,6 +16,10 @@ export class Registers {
     return Array.from(this.registers);
   }
 
+  loadState(state: number[]) {
+    this.registers = new Uint32Array(state);
+  }
+
   pretty() {
     return "Registers { " +
       Array.from(this.registers).map((r, i) =>

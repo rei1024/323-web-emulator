@@ -21,4 +21,8 @@ export class Cache {
       order: Array.from(this.order),
     };
   }
+
+  loadState(state: ReturnType<typeof Cache.prototype.getState>) {
+    // TODO
+  }
 }

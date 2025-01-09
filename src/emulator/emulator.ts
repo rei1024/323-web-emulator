@@ -121,6 +121,15 @@ export class Emulator {
     };
   }
 
+  loadState(state: ReturnType<typeof Emulator.prototype.getState>) {
+    this.halted = false;
+    this.stepCount = state.stepCount;
+    this.registers.loadState(state.registers);
+    this.flag = state.flag;
+    this.cache.loadState(state.cache);
+    this.ram.loadState(state.ram);
+  }
+
   constructor(
     machineCode: Uint32Array,
     // TODO: incorporate to save-state

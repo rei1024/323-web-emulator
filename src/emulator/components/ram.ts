@@ -30,6 +30,10 @@ export class RAM {
     return Array.from(this.ram);
   }
 
+  loadState(state: number[]) {
+    this.ram = new Uint32Array(state);
+  }
+
   setArray(array: Uint32Array, offset?: number) {
     this.ram.set(array, offset);
     this.maxAccessAddress = Math.max(
