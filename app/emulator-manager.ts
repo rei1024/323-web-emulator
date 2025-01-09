@@ -63,7 +63,7 @@ export class EmulatorManager {
 
   getCurrentInstructionString(): string {
     try {
-      return stringifyInstruction(this.emulator.getCurrentInst().inst);
+      return stringifyInstruction(this.emulator.getCurrentInst());
     } catch (error) {
       return "";
     }

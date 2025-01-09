@@ -62,16 +62,14 @@ Deno.test("decodeInstruction add", () => {
   });
 
   assertEquals(decoded, {
-    inst: {
-      type: I_ADD,
-      xX: 1,
-      xY: 2,
-      xZ: 3,
-      hwordCount: 1,
-    },
+    type: I_ADD,
+    xX: 1,
+    xY: 2,
+    xZ: 3,
+    hwordCount: 1,
   });
 
-  assertEquals(encodeInstruction(decoded.inst), [encoded]);
+  assertEquals(encodeInstruction(decoded), [encoded]);
 });
 
 Deno.test("decodeInstruction JMPI", () => {
@@ -82,14 +80,12 @@ Deno.test("decodeInstruction JMPI", () => {
   const expected = [encoded, imm16];
 
   assertEquals(decoded, {
-    inst: {
-      type: I_JMPI,
-      imm16: imm16,
-      hwordCount: expected.length as 2,
-    },
+    type: I_JMPI,
+    imm16: imm16,
+    hwordCount: expected.length as 2,
   });
 
-  const reencoded = encodeInstruction(decoded.inst);
+  const reencoded = encodeInstruction(decoded);
 
   assertEquals(reencoded, expected);
 });
@@ -102,16 +98,14 @@ Deno.test("decodeInstruction LDI", () => {
 
   const expected = [encoded, imm16, imm16Lower];
   assertEquals(decoded, {
-    inst: {
-      type: I_LDI,
-      // least significant 16 bits first
-      imm32: imm16Lower << 16 | imm16,
-      xZ: 5,
-      hwordCount: expected.length as 3,
-    },
+    type: I_LDI,
+    // least significant 16 bits first
+    imm32: imm16Lower << 16 | imm16,
+    xZ: 5,
+    hwordCount: expected.length as 3,
   });
 
-  const reencoded = encodeInstruction(decoded.inst);
+  const reencoded = encodeInstruction(decoded);
   assertEquals(reencoded, expected);
 });
 
@@ -125,15 +119,13 @@ Deno.test("decodeInstruction OUT", () => {
 
   const expected = [encoded];
   assertEquals(decoded, {
-    inst: {
-      type: I_OUT,
-      xX: 2,
-      xY: 3,
-      hwordCount: expected.length as 1,
-    },
+    type: I_OUT,
+    xX: 2,
+    xY: 3,
+    hwordCount: expected.length as 1,
   });
 
-  const reencoded = encodeInstruction(decoded.inst);
+  const reencoded = encodeInstruction(decoded);
   assertEquals(reencoded, expected);
 });
 
@@ -147,15 +139,13 @@ Deno.test("decodeInstruction STR", () => {
 
   const expected = [encoded];
   assertEquals(decoded, {
-    inst: {
-      type: I_STR,
-      xX: 3, // reversed
-      xY: 2,
-      hwordCount: expected.length as 1,
-    },
+    type: I_STR,
+    xX: 3, // reversed
+    xY: 2,
+    hwordCount: expected.length as 1,
   });
 
-  const reencoded = encodeInstruction(decoded.inst);
+  const reencoded = encodeInstruction(decoded);
   assertEquals(reencoded, expected);
 });
 
@@ -169,12 +159,10 @@ Deno.test("decodeInstruction hlt", () => {
 
   const expected = [encoded];
   assertEquals(decoded, {
-    inst: {
-      type: I_HLT,
-      hwordCount: expected.length as 1,
-    },
+    type: I_HLT,
+    hwordCount: expected.length as 1,
   });
 
-  const reencoded = encodeInstruction(decoded.inst);
+  const reencoded = encodeInstruction(decoded);
   assertEquals(reencoded, expected);
 });

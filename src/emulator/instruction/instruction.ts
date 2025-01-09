@@ -1,4 +1,3 @@
-import { rshift } from "../../bits.ts";
 import { toUnsigned32 } from "../../util.ts";
 import {
   I_ADD,
@@ -430,26 +429,24 @@ const arithOpNybbleToType = {
   0xd: I_XOR,
 } as Record<number, number>;
 
-// TODO: split hwordCount into object map
 export function decodeInstruction(
   hword: number,
   getNextHword: () => number | undefined,
   getNextNextHword: () => number | undefined,
-): { inst: Instruction } {
-  const opNybble = rshift(hword, 12);
-  const x = rshift(hword, 8) & 0xf;
-  const y = rshift(hword, 4) & 0xf;
+): Instruction {
+  const opNybble = hword >>> 12;
+  const x = (hword >>> 8) & 0xf;
+  const y = (hword >>> 4) & 0xf;
   const z = hword & 0xf;
 
-  if (arithOpNybbleToType[opNybble] !== undefined) {
+  const arithType = arithOpNybbleToType[opNybble];
+  if (arithType !== undefined) {
     return {
-      inst: {
-        type: arithOpNybbleToType[opNybble] as any,
-        xX: x,
-        xY: y,
-        xZ: z,
-        hwordCount: 1,
-      },
+      type: arithType as any,
+      xX: x,
+      xY: y,
+      xZ: z,
+      hwordCount: 1,
     };
   }
 
@@ -457,22 +454,18 @@ export function decodeInstruction(
     // 0xaXY(0|1)
     if (z === 0) {
       return {
-        inst: {
-          type: I_STR,
-          // NOTE: reversed.
-          xX: y,
-          xY: x,
-          hwordCount: 1,
-        },
+        type: I_STR,
+        // NOTE: reversed.
+        xX: y,
+        xY: x,
+        hwordCount: 1,
       };
     } else if (z === 1) {
       return {
-        inst: {
-          type: I_OUT,
-          xX: x,
-          xY: y,
-          hwordCount: 1,
-        },
+        type: I_OUT,
+        xX: x,
+        xY: y,
+        hwordCount: 1,
       };
     }
     throw new Error(`Invalid instruction ${toHex(hword)}`);
@@ -496,12 +489,10 @@ export function decodeInstruction(
       // least significant hword first
       const imm32 = nextHword | nextNextHword << 16;
       return {
-        inst: {
-          type: I_LDI,
-          imm32,
-          xZ: z,
-          hwordCount: 3,
-        },
+        type: I_LDI,
+        imm32,
+        xZ: z,
+        hwordCount: 3,
       };
     } else if (y !== 0) {
       throw new Error(`Invalid instruction ${toHex(hword)}`);
@@ -514,11 +505,9 @@ export function decodeInstruction(
           throw new Error("Unexpected end of instruction");
         }
         return {
-          inst: {
-            type: I_JMPI,
-            imm16,
-            hwordCount: 2,
-          },
+          type: I_JMPI,
+          imm16,
+          hwordCount: 2,
         };
       }
       case 1: {
@@ -528,11 +517,9 @@ export function decodeInstruction(
         }
         // NOTE: Documentation is wrong. jnf and jf are swapped.
         return {
-          inst: {
-            type: I_JNFI,
-            imm16,
-            hwordCount: 2,
-          },
+          type: I_JNFI,
+          imm16,
+          hwordCount: 2,
         };
       }
       case 2: {
@@ -541,11 +528,9 @@ export function decodeInstruction(
           throw new Error("Unexpected end of instruction");
         }
         return {
-          inst: {
-            type: I_JFI,
-            imm16,
-            hwordCount: 2,
-          },
+          type: I_JFI,
+          imm16,
+          hwordCount: 2,
         };
       }
       default: {
@@ -556,12 +541,10 @@ export function decodeInstruction(
 
   if (x === 1) {
     return {
-      inst: {
-        type: I_LDR,
-        xY: y,
-        xZ: z,
-        hwordCount: 1,
-      },
+      type: I_LDR,
+      xY: y,
+      xZ: z,
+      hwordCount: 1,
     };
   }
 
@@ -569,30 +552,24 @@ export function decodeInstruction(
     switch (z) {
       case 0: {
         return {
-          inst: {
-            type: I_JMPR,
-            xY: y,
-            hwordCount: 1,
-          },
+          type: I_JMPR,
+          xY: y,
+          hwordCount: 1,
         };
       }
       case 1: {
         // NOTE: Documentation is wrong. jnf and jf are swapped.
         return {
-          inst: {
-            type: I_JNFR,
-            xY: y,
-            hwordCount: 1,
-          },
+          type: I_JNFR,
+          xY: y,
+          hwordCount: 1,
         };
       }
       case 2: {
         return {
-          inst: {
-            type: I_JFR,
-            xY: y,
-            hwordCount: 1,
-          },
+          type: I_JFR,
+          xY: y,
+          hwordCount: 1,
         };
       }
       default: {
@@ -603,21 +580,17 @@ export function decodeInstruction(
 
   if (x === 3) {
     return {
-      inst: {
-        type: I_IN,
-        xY: y,
-        xZ: z,
-        hwordCount: 1,
-      },
+      type: I_IN,
+      xY: y,
+      xZ: z,
+      hwordCount: 1,
     };
   }
 
   if (hword === 0xeeee) {
     return {
-      inst: {
-        type: I_HLT,
-        hwordCount: 1,
-      },
+      type: I_HLT,
+      hwordCount: 1,
     };
   }
 

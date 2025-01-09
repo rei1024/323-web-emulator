@@ -284,7 +284,7 @@ export class Emulator {
     if (this.halted) {
       return "halt";
     }
-    const { inst } = this.getCurrentInst();
+    const inst = this.getCurrentInst();
     // DEBUG;
     // console.log(
     //   this.ram.get16(this.pc).toString(16).padStart(4, "0"),

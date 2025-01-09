@@ -15,7 +15,7 @@
       "dom.iterable"
     ]
   },
-  "exclude": [],
+  "exclude": ["dist"],
   "lint": {
     "rules": {
       "include": ["no-throw-literal", "no-sparse-arrays", "no-eval"],
