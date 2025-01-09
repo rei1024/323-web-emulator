@@ -2,6 +2,8 @@ import { assertEquals } from "@std/assert/equals";
 import { Emulator } from "./emulator.ts";
 import { expMachineCode, textMachineCode } from "../test/data.ts";
 import { OutDeviceImpl } from "./devices/devices.ts";
+import { encodeSaveState } from "./save-state/encode.ts";
+import { decodeSaveState } from "./save-state/decode.ts";
 
 Deno.test("Emulator add x0,x0,xF", () => {
   const emulator = new Emulator(new Uint32Array([0x000f]));
@@ -70,4 +72,10 @@ Deno.test("Emulator run text", () => {
       "                                                                ",
     ],
   );
+
+  const state = emulator.getState();
+  const ss = encodeSaveState(state);
+  const decodedState = decodeSaveState(ss);
+  decodedState.stepCount = 10000;
+  assertEquals(state, decodedState);
 });
