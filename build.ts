@@ -20,7 +20,7 @@ await esbuild.build({
 });
 
 await esbuild.build({
-  entryPoints: ["./style.css"],
+  entryPoints: ["./app/style.css"],
   outfile: "./dist/style.min.css",
   minify: true,
   target: target,
@@ -40,6 +40,9 @@ console.log(
     `\n${compressed.byteLength.toLocaleString()} bytes (gzip)`,
 );
 
+await Deno.copyFile("./app/index.html", "./dist/index.html");
+await Deno.copyFile("./static/favicon.svg", "./dist/favicon.svg");
+
 if (Deno.args.includes("with-serve")) {
-  Deno.serve((req) => serveDir(req, { fsRoot: "." }));
+  Deno.serve((req) => serveDir(req, { fsRoot: "./dist" }));
 }
