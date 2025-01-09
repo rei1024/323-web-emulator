@@ -4,6 +4,8 @@ function split(u32: number) {
   return [u32 & 0xffff, u32 >>> 16];
 }
 
+const WORD_OFFSET = 128;
+
 export class RAMUI {
   private cells: HTMLElement[] = [];
   constructor(private $root: HTMLElement) {
@@ -15,15 +17,23 @@ export class RAMUI {
 
     this.cells = [];
 
+    const chunk = 16;
     for (let i = 0; i < 64; i++) {
       const $row = create("tr");
       const $td = create("td");
-      for (let j = 0; j < 16; j++) {
+      for (let j = 0; j < chunk; j++) {
         const $cell = create("span");
         this.cells.push($cell);
         $td.append($cell);
       }
-      $row.append($td);
+      const $th = create("th");
+      $th.textContent = "0x" +
+        ((((chunk >> 1) * i) + WORD_OFFSET).toString(16).toUpperCase().padStart(
+          4,
+          "0",
+        ));
+      $th.style.paddingRight = "8px";
+      $row.append($th, $td);
 
       $table.append($row);
     }
@@ -33,7 +43,7 @@ export class RAMUI {
 
   render(ram: number[]) {
     // console.log(ram);
-    const hwords = ram.slice(128).flatMap((word) => split(word));
+    const hwords = ram.slice(WORD_OFFSET).flatMap((word) => split(word));
     const cells = this.cells;
     for (let i = 0; i < cells.length; i++) {
       const hword = hwords[i];
