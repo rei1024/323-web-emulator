@@ -54,3 +54,19 @@ Deno.test("assemble b3s23", () => {
 Deno.test("assemble text", () => {
   correct(textAsm, textMachineCode);
 });
+
+Deno.test("assemble programs", async () => {
+  const dir = "./static/program/";
+  for await (const file of Deno.readDir(dir)) {
+    if (file.isFile) {
+      const src = new TextDecoder().decode(
+        await Deno.readFile(dir + file.name),
+      );
+      try {
+        assemble(src);
+      } catch (error) {
+        throw new Error("Assemble name = " + file.name, { cause: error });
+      }
+    }
+  }
+});

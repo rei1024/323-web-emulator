@@ -1,0 +1,13 @@
+	align 32
+clr:	jmp clr2
+	align 32
+clr2:	jmp clr3
+	align 32
+clr3:	jmp clr4
+	align 32
+clr4:	jmp xC
+	align 32
+
+start:	ld end,xC
+	jmp clr
+end:	hlt

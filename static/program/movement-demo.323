@@ -1,0 +1,47 @@
+; Simple demonstration of moving a dot on the screen with the arrow keys.
+; This is mostly intended as a simple example program for people trying to learn
+; how to program the 323. The program is initialised by setting some registers,
+; clearing the screen, drawing the dot, then entering the main loop.
+;
+; The main loop checks for keypresses and jumps to corresponding labels when the
+; keys are pressed. Moving up or down just means rotating the register (x1) that
+; holds the dot (this is the equivalent of a y coordinate), then re-drawing it.
+; Moving left or right involves changing x2, the x coordinate, and drawing at
+; the new location, but not before un-drawing it at the old location.
+
+start:	ld 0x00008000,x1 ; x1 = cursor column
+	ld 16,x2         ; x2 = x coord
+	ld 31,x3
+dl:	out x0,!0xe      ; clear screen
+	out x3,!0xe
+	sub x3,!1,x3
+	jf dl
+draw:	out x1,!0xe      ; draw dot
+	out x2,!0xe
+
+mloop:	in !0xd,x3
+	xor x3,!-1,x0
+	jnf left
+	xor x3,!-2,x0
+	jnf up
+	xor x3,!-3,x0
+	jnf right
+	xor x3,!-4,x0
+	jnf down
+	jmp mloop
+
+down:	rot x1,!1,x1
+	jmp draw
+
+up:	rot x1,!-1,x1
+	jmp draw
+
+left:	out x0,!0xe
+	out x2,!0xe
+	sub x2,!1,x2
+	jmp draw
+
+right:	out x0,!0xe
+	out x2,!0xe
+	add x2,!1,x2
+	jmp draw

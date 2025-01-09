@@ -1,0 +1,334 @@
+; Implementation of quicksort and merge sort, with simple visualisation. I wrote
+; this to demonstrate the 323's ability to handle recursion with manual pushing/
+; popping to/from a stack. xB is used as the stack pointer. It points one past
+; the top of the stack. To push, we store a value to address xB in RAM and
+; increment xB. To pop, we decrement xB and read from the address it then
+; contains.
+;
+; This is actually my first time ever implementing a sorting algorithm. Some
+; people have a very linear idea of learning about programming; they'd probably
+; tell you you have to implement quicksort before making your first CPU, let
+; alone your 4th. But I don't care.
+;
+; There are a few arrays to use with this. Modify this line to choose an array:
+start:	ld @arr4,x1
+; Scroll down to the end of this file to see the arrays defined.
+; Modify this line to choose which sorting algorithm to use:
+	ld qsort,xC
+; msort for merge sort, qsort for quick sort.
+	ld @stack,xB
+	add x1,!31,x2
+	ld 0xe,x4
+dl:	ld x2,x3
+	out x3,x4
+	out x2,x4
+	sub x2,!1,x2
+	sub x2,x1,x0
+	jf dl
+	add x1,!31,x2
+	st !end,xB   ; 	PUSH RETURN ADDRESS
+	add xB,!1,xB
+	jmp xC
+end:	hlt
+
+; quick sort code
+
+; sort array pointed to by x1, with pointer to final element in x2.
+; return address is retrieved from the stack (but neither argument is)
+qsort:	sub x2,x1,x3
+	sub x3,!1,x0
+	jnf ret      ; size >= 2
+	ld x1,x3     ; x3 = pivot
+	; we add and subtract 1 here because the l1 and l2 loops are do-whiles
+	sub x1,!1,x4
+	add x2,!1,x5
+	; Assume x2 - x1 > 1
+l1:	add x4,!1,x4
+	ld x4,x8
+	sub x3,x8,x0 ; pivot >= *x4
+	jnf l1
+l2:	sub x5,!1,x5
+	ld x5,x9
+	sub x9,x3,x0 ; pivot <= *x5
+	jnf l2
+	; check to see if x4 and x5 have crossed each other
+	sub x4,x5,x0
+	jf parted
+	st x8,x5     ; swap 2 elements
+	st x9,x4
+	; draw the elements in their new locations
+	ld 0xe,xE
+	out x8,xE
+	out x5,xE
+	out x9,xE
+	out x4,xE
+	jmp l1
+
+parted:	; partitioning done
+	; now we have to sort (x1:x5) and (x5+1:x2)
+	; TODO: store smaller of the 2 partitions in call-stack
+	add x5,!1,xE ; PUSH x5+1
+	st xE,xB
+	add xB,!1,xB
+	st x2,xB     ; PUSH x2
+	add xB,!1,xB
+	xor x5,x0,x2
+	st !p1,xB    ; PUSH RETURN ADDRESS
+	add xB,!1,xB
+	jmp qsort
+p1:	sub xB,!1,xB ; POP x2
+	ld xB,x2
+	sub xB,!1,xB ; POP x1
+	ld xB,x1
+	st !ret,xB   ; PUSH RETURN ADDRESS
+	add xB,!1,xB
+	jmp qsort
+ret:	sub xB,!1,xB ; POP RETURN ADDRESS
+	ld xB,xC
+	jmp xC
+
+; merge sort code
+
+; sort array x1:x2, return address on stack
+msort:	sub x2,x1,x3
+	sub x3,!1,x0
+	jnf ret      ; size >= 2
+	st x1,xB     ; PUSH x1
+	add xB,!1,xB
+	st x2,xB     ; PUSH x2
+	add xB,!1,xB
+	st !m2,xB    ; PUSH RETURN ADDRESS
+	add xB,!1,xB
+	; recursively call self on lower addresses
+	sub x2,x1,x2
+	shf x2,!-1,x2
+	add x1,x2,x2 ; (now x2 is the half-way point)
+	jmp msort
+m2:	sub xB,!1,xB
+	ld xB,x2     ; POP x2
+	sub xB,!1,xB
+	ld xB,x1     ; POP x1
+	add xB,!2,xB ; (We want to keep those values on the stack. This line
+	             ; does that by just advancing the stack pointer.)
+	st !m3,xB    ; PUSH RETURN ADDRESS
+	add xB,!1,xB
+	; do the same maths as before to get the half-way point, but add 1
+	sub x2,x1,x3
+	shf x3,!-1,x3
+	add x3,x1,x1
+	add x1,!1,x1
+	; now recurse for the second half
+	jmp msort
+	; unlike qsort, there's no tail call here.
+m3:	; merge.
+	sub xB,!1,xB
+	ld xB,x4     ; POP x4
+	sub xB,!1,xB
+	ld xB,x1     ; POP x1
+	sub x4,x1,x2
+	shf x2,!-1,x2
+	add x1,x2,x2
+	add x2,!1,x3
+	; we want the low 5 bits of x5 to indicate where on the screen to draw
+	and x1,!31,x5
+	add x5,!@scratch,x5
+	ld m4,xC
+	xor x1,x0,x6 ; store the bounds in x6 and x7 to move them from scratch
+	xor x4,x0,x7
+	jmp merge
+m4:	; move sorted array back from scratch, to pretend that we're sorting
+	; in-place
+	and x6,!31,x5
+	or x5,!@scratch,x5
+scl:	ld x5,x2
+	st x2,x6
+	add x6,!1,x6
+	add x5,!1,x5
+	sub x7,x6,x0
+	jf scl
+	jmp ret
+
+; merge sorted arrays x1:x2 and x3:x4 into x5, return to xC
+; we assume both x1:x2 and x3:x4 have length >=1
+merge:	sub x2,x1,x0
+	jnf aswp
+	sub x4,x3,x0
+	jnf apnd
+	ld x1,x8
+	ld x3,x9
+	sub x9,x8,x0
+	jf m1
+	st x8,x5
+	out x8,!0xe
+	out x5,!0xe
+	add x1,!1,x1
+	add x5,!1,x5
+	jmp merge
+m1:	st x9,x5
+	out x9,!0xe
+	out x5,!0xe
+	add x3,!1,x3
+	add x5,!1,x5
+	jmp merge
+
+aswp:	xor x3,x0,x1 ; append (after swapping)
+	xor x4,x0,x2
+apnd:	ld x1,x8     ; append x1:x2 to x5 (used if 1 array runs out)
+	st x8,x5
+	out x8,!0xe
+	out x5,!0xe
+	add x1,!1,x1
+	add x5,!1,x5
+	sub x2,x1,x0
+	jf apnd
+	jmp xC
+
+; Arrays to test with. The "align 64" is so they can be printed more easily,
+; using a word's address in memory to specify the column to display it in.
+
+	align 64
+	; sorted in reverse order, no duplicates
+arr1:	dw 0x1
+	dw 0x3
+	dw 0x7
+	dw 0xf
+	dw 0x1f
+	dw 0x3f
+	dw 0x7f
+	dw 0xff
+	dw 0x1ff
+	dw 0x3ff
+	dw 0x7ff
+	dw 0xfff
+	dw 0x1fff
+	dw 0x3fff
+	dw 0x7fff
+	dw 0xffff
+	dw 0x1ffff
+	dw 0x3ffff
+	dw 0x7ffff
+	dw 0xfffff
+	dw 0x1fffff
+	dw 0x3fffff
+	dw 0x7fffff
+	dw 0xffffff
+	dw 0x1ffffff
+	dw 0x3ffffff
+	dw 0x7ffffff
+	dw 0xfffffff
+	dw 0x1fffffff
+	dw 0x3fffffff
+	dw 0x7fffffff
+arr1f:	dw 0xffffffff
+
+	align 64
+	; random, no duplicates
+arr2:	dw 0xfff
+	dw 0x7fff
+	dw 0xfffffff
+	dw 0x3fffff
+	dw 0x1fff
+	dw 0xffff
+	dw 0x7ffffff
+	dw 0x3fff
+	dw 0xf
+	dw 0xfffff
+	dw 0xffffffff
+	dw 0x1ffffff
+	dw 0x3ffff
+	dw 0x3fffffff
+	dw 0x1fffff
+	dw 0x1ff
+	dw 0x7ff
+	dw 0x7ffff
+	dw 0x7fffffff
+	dw 0x3ffffff
+	dw 0x7fffff
+	dw 0x7f
+	dw 0x1
+	dw 0x1fffffff
+	dw 0x3f
+	dw 0xff
+	dw 0x1f
+	dw 0x7
+	dw 0x3ff
+	dw 0xffffff
+	dw 0x3
+arr2f:	dw 0x1ffff
+
+	align 64
+	; sorted, no duplicates
+arr3:	dw 0xffffffff
+	dw 0x7fffffff
+	dw 0x3fffffff
+	dw 0x1fffffff
+	dw 0xfffffff
+	dw 0x7ffffff
+	dw 0x3ffffff
+	dw 0x1ffffff
+	dw 0xffffff
+	dw 0x7fffff
+	dw 0x3fffff
+	dw 0x1fffff
+	dw 0xfffff
+	dw 0x7ffff
+	dw 0x3ffff
+	dw 0x1ffff
+	dw 0xffff
+	dw 0x7fff
+	dw 0x3fff
+	dw 0x1fff
+	dw 0xfff
+	dw 0x7ff
+	dw 0x3ff
+	dw 0x1ff
+	dw 0xff
+	dw 0x7f
+	dw 0x3f
+	dw 0x1f
+	dw 0xf
+	dw 0x7
+	dw 0x3
+arr3f:	dw 0x1
+
+	align 64
+	; random, with duplicates
+arr4:	dw 0xfff
+	dw 0x7ff
+	dw 0x7ffff
+	dw 0x3ffff
+	dw 0x3ffffff
+	dw 0x1fffff
+	dw 0x1f
+	dw 0x7fff
+	dw 0x3fff
+	dw 0x3f
+	dw 0xfff
+	dw 0x7fffffff
+	dw 0x3ffffff
+	dw 0x7fffff
+	dw 0x1
+	dw 0x7
+	dw 0x3ff
+	dw 0xffffff
+	dw 0x1
+	dw 0x1fffffff
+	dw 0x1fff
+	dw 0xff
+	dw 0xfffff
+	dw 0xfffffff
+	dw 0x3fffff
+	dw 0x1fffff
+	dw 0xffff
+	dw 0x7ffffff
+	dw 0x1ff
+	dw 0xffffff
+	dw 0x3
+arr4f:	dw 0x1ffff
+
+	align 2
+scratch:
+	rep 0 32
+
+	align 2
+stack:

@@ -1,0 +1,134 @@
+; Yo dawg, I heard you like cellular automata, so we put a cellular automaton in
+; your cellular automaton so you can simulate while you simulate.
+; Remember that meme? No? Sorry.
+;
+; B3/S23 simulator, using bitwise operations to do 8 cells at a time. Gets about
+; one column per second on my machine. Due to impatience, I used my emulator to
+; test this (although I also ran it on the CPU proper once I knew it worked).
+
+; x8 = array to read from
+; x9 = array to write to
+
+start:	ld @a1,x8
+	ld @a2,x9
+frame:	ld 31,x1              ; x1 = index of column (0 to 31)
+col:	ld 3,x5               ; x5 = bit within nybble (used for rotates)
+	xor x0,x0,x6          ; x6 = final accumulator
+bit:	add x1,x8,x2          ; x2 = current column address in RAM
+	ld x2,x3              ; x3 = current column data
+	rot x3,x5,x3
+	xor x0,x0,x4          ; x4 = neighbour count accumulator
+	; Neighbour count:
+	; CENTRE COLUMN
+	; add N
+	rot x3,!1,xD
+	and xD,!0x11111111,xD
+	add x4,xD,x4
+	; add S
+	rot x3,!-1,xD
+	and xD,!0x11111111,xD
+	add x4,xD,x4
+	; COLUMN TO THE LEFT (WEST)
+	sub x2,!1,x3
+	ld x3,x3
+	rot x3,x5,x3
+	; add NW
+	rot x3,!1,xD
+	and xD,!0x11111111,xD
+	add x4,xD,x4
+	; add W
+	and x3,!0x11111111,xD
+	add x4,xD,x4
+	; add SW
+	rot x3,!-1,xD
+	and xD,!0x11111111,xD
+	add x4,xD,x4
+	; COLUMN TO THE RIGHT (EAST)
+	add x2,!1,x3
+	ld x3,x3
+	rot x3,x5,x3
+	; add NE
+	rot x3,!1,xD
+	and xD,!0x11111111,xD
+	add x4,xD,x4
+	; add E
+	and x3,!0x11111111,xD
+	add x4,xD,x4
+	; add SE
+	rot x3,!-1,xD
+	and xD,!0x11111111,xD
+	add x4,xD,x4
+	; Now we're done with the neighbour count.
+	; Apply transition rule of B3/S23:
+	ld x2,x3
+	rot x3,x5,x3
+	and x3,!0x11111111,x3
+	or x3,x4,x4
+	xor x4,!0x33333333,x4
+	; Now we just need to check if each nybble is non-zero.
+	and x4,!0xcccccccc,x3
+	shf x3,!-2,x3
+	or x3,x4,x4
+	and x4,!0x22222222,x3
+	shf x3,!-1,x3
+	or x3,x4,x4
+	and x4,!0x11111111,x4
+	xor x4,!0x11111111,x4 ; Done. Now OR it into the final accumulator:
+	sub x0,x5,x3
+	rot x4,x3,x4
+	or x4,x6,x6
+	; Handle looping for bit:
+	sub x5,!1,x5
+	jf bit
+	; Handle looping for col:
+	add x1,x9,x2
+	st x6,x2
+	ld 0xe,xE
+	out x6,xE
+	out x1,xE
+	sub x1,!1,x1
+	jf col
+	; Handle looping for frame:
+	xor x8,x0,xE
+	xor x9,x0,x8
+	xor xE,x0,x9
+	jmp frame
+
+	; We use 2 alternating arrays; read from one and write to the other.
+	; To simplify code, both arrays have 1 empty col. (word) on either side.
+	align 2
+	dw 0
+a1:	dw 0
+	dw 0
+	dw 0x00000010
+	dw 0x00000014
+	dw 0x00000018
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+	dw 10
+	dw 9
+	dw 8
+	dw 7
+	dw 6
+	dw 5
+	dw 0
+	dw 0
+	dw 0
+	dw 0x3000000
+	dw 0x6000000
+	dw 0x2000000
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+a2:	rep 0 33

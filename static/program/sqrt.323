@@ -1,0 +1,25 @@
+start:	ld 100,x1
+	ld end,xC
+	jmp sqrt
+end:	out x8,!0xe
+	out x0,!0xe
+	hlt
+
+; Binary search for square root of x1. Will only take 16 iterations at most.
+; x1 is unsigned. Rounds down to integer. Return value in x8.
+sqrt:	ld 0x8000,xA ; Bit to test.
+	ld -1,x9     ; For shifting xA.
+	xor x0,x0,x8 ; Accumulator.
+	; Test this bit.
+sqrtl:	or xA,x8,x8
+	mul x8,x8,xB
+	xor xB,x1,x0
+	jnf xC       ; Exact result found; x1 is a square number.
+	sub xB,x1,x0
+	jnf keepbit
+	xor xA,x8,x8
+keepbit:
+	shf xA,x9,xA
+	xor xA,x0,x0
+	jf sqrtl
+	jmp xC

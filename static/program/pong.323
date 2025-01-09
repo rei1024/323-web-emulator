@@ -1,0 +1,183 @@
+; Pong. You know, the game.
+; Up/down to move left paddle, left/right to move right paddle. It may seem
+; awkward to have two players trying to use keys that are so close on a
+; keyboard, but bear in mind the keyboard peripheral can't handle more than one
+; key being pressed at a time anyway, so the players should simply take turns.
+;
+; I don't have anyone to play it with, though :(.
+
+; x1 = left paddle
+; x2 = right paddle
+; x3 = ball
+; x4 = x coord of ball
+; x5 = x speed of ball
+; x6 = y speed of ball
+; x7 = I/O pin index for keyboard input
+; xA = timer for ticks (clobbered by draw())
+; xB = vertical ball speed (0 for normal, 1 for half-speed)
+
+start:	ld 0x3fc,x1
+	ld 0x3fc,x2
+	ld 512,x3
+	ld 3,x4
+	ld 1,x5
+	ld 1,x6
+	ld 0xd,x7
+	ld loop,xC
+	ld 1,xB
+	jmp draw
+
+; draw entire screen
+draw:	ld 0xe,x8
+	ld 31,x9
+	ld 1,xA
+	out x1,x8
+	out x0,x8
+	out x2,x8
+	out x9,x8
+dl:	sub x9,xA,x9
+	out x0,x8
+	out x9,x8
+	xor x9,xA,x0
+	jf dl
+	out x3,x8
+	out x4,x8
+	jmp xC
+
+loop:	add !1,xA,xA
+	and xA,!15,x0
+	jf loop
+	in x7,x8
+	ld 0xe,xD
+	xor x8,!-2,x0 ; UP
+	jnf lup
+	xor x8,!-4,x0 ; DOWN
+	jnf ldown
+	xor x8,!-1,x0 ; LEFT
+	jnf rup
+	xor x8,!-3,x0 ; RIGHT
+	jnf rdown
+	jmp l1
+lup:	rot x1,!-1,x1
+	jmp lm
+ldown:	rot x1,!1,x1
+lm:	out x1,xD
+	out x0,xD
+	jmp l1
+rup:	rot x2,!-1,x2
+	jmp rm
+rdown:	rot x2,!1,x2
+rm:	out x2,xD
+	out !31,xD
+	jmp l1
+
+	; move ball
+l1:	out x0,xD    ; un-draw ball
+	out x4,xD
+	add x4,x5,x4 ; move ball
+	xor xB,x0,x0
+	jnf l4
+	and x4,xB,x0
+	jnf l3
+l4:	rot x3,x6,x3
+l3:	xor x4,x0,x0 ; check for collision
+	jnf lcol
+	xor x4,!31,x0
+	jnf rcol
+l2:	out x3,xD    ; draw ball in new position
+	out x4,xD
+	jmp loop
+
+lcol:	ld 1,x4
+	and x1,x3,x0
+	jf hit
+	; left player missed
+	ld @rsc,x9
+	ld x9,x8
+	add x8,!1,x8
+	st x8,x9
+	jmp miss
+
+rcol:	ld 30,x4
+	and x2,x3,x0
+	jf hit
+	; right player missed
+	ld @lsc,x9
+	ld x9,x8
+	add x8,!1,x8
+	st x8,x9
+miss:	ld !@lsc,x9  ; check to see if scores add up to 3; end if so
+	ld !@rsc,x8
+	add x8,x9,x4
+	xor x4,!3,x0
+	jnf end
+	ld 16,x4     ; put ball back in centre
+	sub x0,x5,x5
+	sub x0,x6,x6
+	jmp l2
+
+hit:	sub x0,x5,x5
+	xor xB,!1,xB
+	jmp l2
+
+end:	ld 6,x2      ; amount of pixels from the left to draw message
+	ld 16,x3     ; size of message
+	ld 0xe,x4    ; I/O pin number for the display
+	ld 1,x5      ; constant
+	sub x9,x8,x0 ; check who won, and store the corresponding bitmap in x1
+	jf lwe
+	ld @rwin,x1
+	jmp wloop
+lwe:	ld @lwin,x1
+wloop:	ld x1,xE
+	out xE,x4
+	out x2,x4
+	add x1,x5,x1
+	add x2,x5,x2
+	sub x3,x5,x3
+	jf wloop
+	hlt
+
+	; score for the players
+lsc:	dw 0
+rsc:	dw 0
+
+	; rasterised text telling you who won
+rwin:	dw 0x03e
+	dw 0x38a
+	dw 0xc34
+	dw 0x380
+	dw 0xc3e
+	dw 0x380
+	dw 0x01c
+	dw 0xfa2
+	dw 0x01a
+	dw 0xf80
+	dw 0x0be
+	dw 0xf08
+	dw 0x03e
+	dw 0x900
+	dw 0xa82
+	dw 0x4be
+	dw 0x002
+
+lwin:	dw 0x000
+	dw 0x3be
+	dw 0xc20
+	dw 0x3a0
+	dw 0xc00
+	dw 0x3be
+	dw 0x02a
+	dw 0xfa2
+	dw 0x000
+	dw 0xfbe
+	dw 0x08a
+	dw 0xf02
+	dw 0x000
+	dw 0x902
+	dw 0xabe
+	dw 0x482
+	dw 0x000
+	dw 0x000
+	dw 0x000
+	dw 0x001

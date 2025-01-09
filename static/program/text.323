@@ -1,0 +1,315 @@
+; Text rendering code.
+; This file has a bunch of functions for handling text and a bitmapped display.
+; They are each described by comments above their definition. Return addresses
+; are in xC. The functions here follow the convention that they must leave the
+; low registers (x1-x7) intact, but they are allowed to clobber the high
+; registers (x8-xF). 3 example programs using this library are provided. Comment
+; out the square numbers one and un-comment one of the other 2 to see them in
+; action.
+
+; It's relatively simple to write your own program to print out an integer
+; sequence. Note, however, that the "str" command in the assembler currently
+; only reliably supports upper-case letters, but not spaces or other symbols.
+
+; MAIN PROGRAM -----------------------------------------------------------------
+
+start:
+
+
+
+	; HELLO WORLD (slow, be patient)
+	ld @str,x4
+	ld 13,x5
+	ld putc,x6
+	ld s1,xC
+	jmp strd
+s1:	ld end,xC
+	jmp flush
+
+
+
+	; PRINT 2**32 - 1
+;	ld -1,x1
+;	ld s1,xC
+;	jmp prud
+;s1:	ld end,xC
+;	jmp flush
+
+
+
+	; PRINT SQUARE NUMBERS
+;	ld 2,x2
+;	ld 1,x4
+;	xor x4,x0,x5
+;	ld 63,x3 ; '\n'
+;slp:	xor x5,x0,x1
+;	ld s1,xC
+;	jmp prud
+;s1:	add x2,x4,x4
+;	add x4,x5,x5
+;	xor x3,x0,x1
+;	ld s2,xC
+;	jmp putc
+;s2:	ld slp,xC
+;	jmp flush
+
+
+
+end:	hlt
+
+	align 2
+str:	str HELLO, WORLD!
+
+; RENDERING --------------------------------------------------------------------
+
+	align 2
+bmap:	rep 0 32
+
+; Write contents of buffer (bmap) to display. No arguments.
+flush:	ld 32,x9
+	ld 1,x8
+	ld @bmap,xD
+	ld 0xe,xE
+fl1:	sub x9,x8,x9
+	add x9,xD,xA
+	ld xA,xA
+	out xA,xE
+	out x9,xE
+	xor x9,x0,x0
+	jf fl1
+	jmp xC
+
+; Mask and set col.
+; Sets col x1 to (previous value & x2) | x3.
+; Does not update display.
+mcol:	add x1,!@bmap,x8
+	ld x8,x9
+	and x2,x9,x9
+	or x3,x9,x9
+	st x9,x8
+	jmp xC
+
+; Draw character x1 at column x2, row x3. (0,0) is top left.
+; UNCLOBBERED: xB, xD, xF
+	align 2
+glyph:	shf x1,!-1,x8
+	add x8,!@glyphset,x8
+	ld x8,x8
+	and x1,!1,x9
+	shf x9,!4,x9
+	sub x0,x9,x9 ; negate x9
+	; depending on LSB of x1, x9 is now either 0 or -16
+	shf x8,x9,x8
+	and x8,!0x7fff,x8
+	; x8 now contains the character; cols are bits [0-4], [5-9] and [10-14]
+	; where bit 0 is LSB
+	shf x8,!-10,x9
+	add x2,!@bmap,xA
+	shf x9,x3,x9
+	ld xA,xE
+	or x9,xE,x9
+	st x9,xA ; write first column
+	add xA,!1,xA
+	shf x8,!-5,x9
+	and x9,!0x1f,x9
+	shf x9,x3,x9
+	ld xA,xE
+	or x9,xE,x9
+	st x9,xA
+	add xA,!1,xA
+	and x8,!0x1f,x9
+	shf x9,x3,x9
+	ld xA,xE
+	or x9,xE,x9
+	st x9,xA
+	jmp xC
+
+; string do
+; Take string x4, length x5, and call function x6 which takes char arg in x1
+; for now, x6 can clobber x2 and x3, in addition to high registers
+
+; TODO: assembly equiv. of duff's device? loop is unrolled 5 times.
+	align 2
+strdR:	rep 0 1 ; strd() return address
+strd:	st xC,!@strdR
+	sub x5,!1,x5 ; test to see if we're done
+	jnf sdend
+strdw:	ld x4,x7
+	; x7 has 5 chars; get them
+	; first char of word
+	and x7,!0x3f,x1
+	ld sd1,xC
+	jmp x6 ; TODO: DECLOBBIFY
+sd1:	sub x5,!1,x5
+	jnf sdend
+	; then more or less repeat the above:
+	shf x7,!-6,x7
+	and x7,!0x3f,x1
+	ld sd2,xC
+	jmp x6
+sd2:	sub x5,!1,x5
+	jnf sdend
+	shf x7,!-6,x7
+	and x7,!0x3f,x1
+	ld sd3,xC
+	jmp x6
+sd3:	sub x5,!1,x5
+	jnf sdend
+	shf x7,!-6,x7
+	and x7,!0x3f,x1
+	ld sd4,xC
+	jmp x6
+sd4:	sub x5,!1,x5
+	jnf sdend
+	shf x7,!-6,x7
+	and x7,!0x3f,x1
+	ld sd5,xC
+	jmp x6
+sd5:	sub x5,!1,x5
+	jnf sdend
+	; full word of 5 chars printed; do next char
+	add x4,xE,x4 ; xE is still 1 from last sub instruction's pseudo-imm
+	jmp strdw
+sdend:	ld @strdR,xC
+	ld xC,xC
+	jmp xC
+
+; USER-FACING CONSOLE FUNCTIONS ------------------------------------------------
+
+	align 2
+cursX:	rep 0 1
+cursY:	rep 0 1
+
+; print character x1
+putc:	xor x2,x0,xD ; save x2 and x3 in xD and xF (un-clobbered by glyph())
+	xor x3,x0,xF
+	xor xC,x0,xB ; xB is also un-clobbered
+	ld @cursX,x2
+	ld x2,x2
+	ld @cursY,x3
+	ld x3,x3
+	xor x1,!63,x0 ; x1 != NL
+	jnf wrap      ; handle newline without printing it
+	ld pc1,xC
+	jmp glyph
+pc1:	add x2,!4,x2 ; move on to next text column
+	; but now we must check for overflow
+	sub !29,x2,x0
+	jf nowr
+	; text wrapping
+wrap:	xor x0,x0,x2
+	add x3,!6,x3
+	sub !26,x3,x0
+	jf done
+	; we reached the bottom; move entire bmap up by 6 pixels
+	ld 32,x8
+	ld 1,x9
+	ld @bmap,xA
+	ld -6,xC
+pc2:	sub x8,x9,x8
+	add xA,x8,xE ; x2 = addr of column
+	ld xE,x3
+	shf x3,xC,x3
+	st x3,xE
+	xor x8,x0,x0
+	jf pc2
+	ld 25,x3
+nowr:	; no wrapping
+done:	st x2,!@cursX
+	st x3,!@cursY
+	; restore x2 and x3
+	xor xD,x0,x2
+	xor xF,x0,xF ; re-invert to restore original value
+	xor xF,x0,x3
+	jmp xB
+
+;011111
+; 10101
+; 01010 (first 2 letters as demonstration of glyph format)
+;011111
+; 00101
+; 11111 = 0x7eaa7cbf
+	align 2
+glyphset:
+	rep 0x7cbf0000 1 ; A,NUL
+	rep 0x3a317eaa 1 ; CB
+	rep 0x7eb57e2e 1 ; ED
+	rep 0x3a2d7ca1 1 ; GF
+	rep 0x47f17c9f 1 ; IH
+	rep 0x7c9b220f 1 ; KJ
+	rep 0x7c3e7e10 1 ; ML
+	rep 0x3a2e7c5f 1 ; ON
+	rep 0x3a3e7ca2 1 ; QP
+	rep 0x4aa97cba 1 ; SR
+	rep 0x3e0f07e1 1 ; UT
+	rep 0x7d1f1f07 1 ; WV
+	rep 0x0f836c9b 1 ; YX
+	rep 0x410066b3 1 ; ,Z
+	rep 0x41200200 1 ; ;.
+	rep 0x08210220 1 ; ~:
+	rep 0x4bf03a2e 1 ; 10
+	rep 0x46aa66b2 1 ; 32
+	rep 0x5ea91c9f 1 ; 54
+	rep 0x07a33aad 1 ; 76
+	rep 0x5aae2aaa 1 ; 98
+	rep 0x45c001d1 1 ; )(
+	rep 0x47e003f1 1 ; ][
+	rep 0x02e006a2 1 ; !?
+	rep 0x45441151 1 ; ><
+	rep 0x08882082 1 ; \/
+	rep 0x144511c4 1 ; *+
+	rep 0x08222492 1 ; ^%
+	rep 0x7ab00060 1 ; £'
+	rep 0x10844210 1 ; -_
+	rep 0x000003e0 1 ; SPC,|
+	rep 0x00000000 1 ; NL,TAB
+
+; PRINTING
+
+; print unsigned decimal
+; print x1 as an unsigned 32-bit integer in decimal
+; max value 4,294,967,296 == 10 digits
+	align 2
+pdx1:	rep 0 1
+pdx2:	rep 0 1
+pdx3:	rep 0 1
+pdx4:	rep 0 1
+pdR:	rep 0 1
+
+prud:	st x1,!@pdx1 ; save x1-x4, xC
+	st x2,!@pdx2
+	st x3,!@pdx3
+	st x4,!@pdx4
+	st xC,!@pdR
+	ld 1000000000,x2 ; 1 billion
+	ld 10,x3
+	; ... also, make putc save x1-x3 (x2-x3?) ...
+	xor x1,x0,x4
+pdtrim:	sub x4,x2,x0 ; trim leading 0s
+	jf pd1
+	; divide x2 by 10, but enter main printing loop if x2 == 1
+	; this means the number 0 is printed correctly; we avoid an infintie
+	; loop, and also ensure that at least 1 digit (0) is printed
+	div x2,x3,x2
+	sub x2,x3,x0
+	jf pdtrim
+pd1:	div x4,x2,x1
+	mod x4,x2,x4
+	add x1,!32,x1 ; x1 += '0'
+	ld pd2,xC
+	jmp putc
+pd2:	div x2,x3,x2 ; division sets flag if result is non-zero
+	;xor x2,x0,x0
+	jf pd1
+pd3:	; done; restore x1-x4, xC
+	ld @pdx1,x1 ; so fucking clusterfucked. needs to happen, though
+	ld x1,x1    ; only good way to do this is with a macro
+	ld @pdx2,x2
+	ld x2,x2
+	ld @pdx3,x3
+	ld x3,x3
+	ld @pdx4,x4
+	ld x4,x4
+	ld @pdR,xC
+	ld xC,xC
+	jmp xC

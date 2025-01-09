@@ -1,0 +1,29 @@
+; Draws a circle using the Pythagorean theorem (summing squares to determine
+; distance from origin and thus colouring in a pixel white or black depending on
+; whether or not it's in the circle). This is a good example of the value of
+; HashLife; only 32 multiplications actually have to be done, even though in
+; theory it should be 2048 (two coordinates per pixel).
+
+start:	ld 31,x1     ; x coord.
+	ld 1,x5      ; Constant.
+	ld 32,x7     ; Constant.
+	ld 1024,x9   ; Constant (32 squared, used as the threshold).
+forx:	ld 0,x2      ; y coord.
+	xor x0,x0,x3 ; Accumulator for column.
+	ld 1,x4      ; Bitmask.
+fory:	mul x1,x1,x8
+	mul x2,x2,xE
+	add x8,xE,x8 ; x8 := sum of squares of x and y.
+	add x2,x5,x2
+	sub x8,x9,x0
+	;sub x1,x2,x0
+	jf blk
+	or x4,x3,x3
+blk:	add x4,x4,x4 ; <<= 1
+	jnf fory
+	; Column done; now draw it and move on.
+	out x3,!0xe
+	out x1,!0xe
+	sub x1,x5,x1
+	jf forx
+	hlt
