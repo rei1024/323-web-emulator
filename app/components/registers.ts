@@ -1,4 +1,3 @@
-import type { initialize } from "esbuild";
 import { chunk } from "../util/chunk.ts";
 import { create } from "../util/create.ts";
 
@@ -17,22 +16,34 @@ const createHeaderCell = (key: number) => {
   return create("th", `x${key.toString(16).toUpperCase()}`);
 };
 
-function toString(x: number) {
+function toStringDec(x: number) {
   return x.toString();
-  // return "0x" + x.toString(16).padStart(8, "0");
+}
+
+function toStringHex(x: number) {
+  return "0x" + x.toString(16).toUpperCase().padStart(8, "0");
 }
 
 const createDataCell = (key: number, value: number) => {
-  return create("td", {
-    text: toString(value),
+  const $dec = document.createElement("div");
+  const $hex = document.createElement("div");
+  $dec.style.paddingBlock = "2px";
+  $hex.style.paddingBlock = "2px";
+  const $td = create("td", {
+    children: [$dec, $hex],
     fn: (td) => {
       td.dataset["test"] = `x${key.toString(16).toUpperCase()}`;
     },
   });
+  return {
+    $td,
+    $dec,
+    $hex,
+  };
 };
 
-const createTable = (): { table: HTMLTableElement; cells: HTMLElement[] } => {
-  const cells: HTMLElement[] = [];
+const createTable = (): { table: HTMLTableElement; cells: Cell[] } => {
+  const cells: Cell[] = [];
 
   const regs: number[] = Array(16).fill(0);
 
@@ -49,11 +60,11 @@ const createTable = (): { table: HTMLTableElement; cells: HTMLElement[] } => {
       th.style.textAlign = "right";
       header.append(th);
 
-      const td = createDataCell(i, value);
-      td.style.textAlign = "right";
-      td.classList.add("font-monospace");
-      cells.push(td);
-      data.append(td);
+      const { $td, $dec, $hex } = createDataCell(i, value);
+      $td.style.textAlign = "right";
+      $td.classList.add("font-monospace");
+      cells.push({ dec: $dec, hex: $hex });
+      data.append($td);
       i++;
     }
 
@@ -79,8 +90,11 @@ const createTable = (): { table: HTMLTableElement; cells: HTMLElement[] } => {
   };
 };
 
+type Cell = { dec: HTMLElement; hex: HTMLElement };
+type RegisterConfig = { dec: boolean; hex: boolean };
+
 export class RegistersUI {
-  private cells: HTMLElement[] = [];
+  private cells: Cell[] = [];
   constructor(private $root: HTMLElement) {
     this.initialize();
   }
@@ -91,9 +105,11 @@ export class RegistersUI {
     this.cells = cells;
   }
 
-  render(registers: number[]) {
+  render(registers: number[], config: RegisterConfig) {
     for (const [i, r] of registers.entries()) {
-      this.cells[i].textContent = toString(r);
+      const cell = this.cells[i];
+      cell.dec.textContent = config.dec ? toStringDec(r) : "";
+      cell.hex.textContent = config.hex ? toStringHex(r) : "";
     }
   }
 }

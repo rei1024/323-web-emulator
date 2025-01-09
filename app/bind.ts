@@ -20,6 +20,10 @@ export const $stepNumber = $type("#step-number", HTMLElement);
 
 export const $displayCanvas = $type("#display-canvas", HTMLCanvasElement);
 export const $currentInstruction = $type("#current-instruction", HTMLElement);
+
+export const $registerDec = $type("#register-dec", HTMLInputElement);
+export const $registerHex = $type("#register-hex", HTMLInputElement);
+
 export const $registers = $type("#registers", HTMLElement);
 
 export const $keyUp = $type("#key-up", HTMLButtonElement);

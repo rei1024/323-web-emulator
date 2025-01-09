@@ -23,12 +23,13 @@ export class RAMUI {
       const $td = create("td");
       for (let j = 0; j < chunk; j++) {
         const $cell = create("span");
+        $cell.style.marginRight = "8px";
         this.cells.push($cell);
         $td.append($cell);
       }
       const $th = create("th");
       $th.textContent = "0x" +
-        ((((chunk >> 1) * i) + WORD_OFFSET).toString(16).toUpperCase().padStart(
+        (((chunk * i) + WORD_OFFSET * 2).toString(16).toUpperCase().padStart(
           4,
           "0",
         ));
@@ -41,7 +42,7 @@ export class RAMUI {
     this.$root.replaceChildren($table);
   }
 
-  render(ram: number[]) {
+  render(ram: number[], pc: number) {
     // console.log(ram);
     const hwords = ram.slice(WORD_OFFSET).flatMap((word) => split(word));
     const cells = this.cells;
@@ -50,8 +51,14 @@ export class RAMUI {
       if (hword == undefined) {
         return;
       }
-      cells[i].textContent = hword.toString(16).toUpperCase().padStart(4, "0") +
-        " ";
+      const addr = WORD_OFFSET * 2 + i;
+      const cell = cells[i];
+      if (pc === addr) {
+        cell.style.backgroundColor = "#03dffc66";
+      } else {
+        cell.style.backgroundColor = "";
+      }
+      cell.textContent = hword.toString(16).toUpperCase().padStart(4, "0");
     }
   }
 }

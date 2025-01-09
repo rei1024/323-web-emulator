@@ -5,6 +5,8 @@ import {
   $programCounter,
   $ram,
   $ramDetails,
+  $registerDec,
+  $registerHex,
   $registers,
   $stepNumber,
 } from "./bind.ts";
@@ -59,9 +61,12 @@ export class App {
       this.displayUI.render(emulatorManager.getDisplay());
       $currentInstruction.textContent = emulatorManager
         .getCurrentInstructionString();
-      this.registersUI.render(state.registers);
+      this.registersUI.render(state.registers, {
+        dec: $registerDec.checked,
+        hex: $registerHex.checked,
+      });
       if ($ramDetails.open) {
-        this.ramUI.render(state.ram);
+        this.ramUI.render(state.ram, state.pc);
       }
     }
 
