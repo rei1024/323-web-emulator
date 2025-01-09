@@ -3,7 +3,7 @@
     "t": "deno test --allow-read=./static/",
     "w": "deno test --allow-read=./static/ --watch",
     "build": "deno run --allow-env --allow-read --allow-write --allow-run build.ts",
-    "dev": "deno run --watch=./src,./app,style.css --allow-env --allow-read --allow-write --allow-net --allow-run build.ts with-serve"
+    "dev": "deno run --watch=./src,./app --allow-env --allow-read --allow-write --allow-net --allow-run build.ts with-serve"
   },
   "compilerOptions": {
     "exactOptionalPropertyTypes": true,

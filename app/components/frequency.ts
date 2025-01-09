@@ -16,7 +16,6 @@ const getFrequencies = () => {
     }
   }
 
-  // 値を追加したらHTMLも変更すること
   frequencyArray.push(
     10 * 10 ** maxOrder,
     15 * 10 ** maxOrder,
@@ -50,7 +49,7 @@ export function setupFrequencyInput(
     update();
   });
 
-  // タブの複製で設定されることがあるため。
+  // Duplicate tab causes bugs
   setTimeout(() => {
     update();
   }, 1);

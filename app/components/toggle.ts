@@ -1,4 +1,4 @@
-// HTMLと合わせること
+// Check HTML
 const RUN = "Run";
 const STOP = "Stop";
 
