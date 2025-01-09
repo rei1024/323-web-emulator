@@ -28,6 +28,7 @@ import {
 
 export interface BaseInstruction {
   type: number;
+  hwordCount: number;
 }
 
 export interface AddInstruction extends BaseInstruction {
@@ -35,6 +36,7 @@ export interface AddInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface SubInstruction extends BaseInstruction {
@@ -42,6 +44,7 @@ export interface SubInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface MulInstruction extends BaseInstruction {
@@ -49,6 +52,7 @@ export interface MulInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface DivInstruction extends BaseInstruction {
@@ -56,6 +60,7 @@ export interface DivInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface ModInstruction extends BaseInstruction {
@@ -63,6 +68,7 @@ export interface ModInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface ShfInstruction extends BaseInstruction {
@@ -70,6 +76,7 @@ export interface ShfInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface RotInstruction extends BaseInstruction {
@@ -77,6 +84,7 @@ export interface RotInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface ShaInstruction extends BaseInstruction {
@@ -84,6 +92,7 @@ export interface ShaInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface OrInstruction extends BaseInstruction {
@@ -91,6 +100,7 @@ export interface OrInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface AndInstruction extends BaseInstruction {
@@ -98,6 +108,7 @@ export interface AndInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface XorInstruction extends BaseInstruction {
@@ -105,70 +116,83 @@ export interface XorInstruction extends BaseInstruction {
   xX: number; // Register X
   xY: number; // Register Y
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface StrInstruction extends BaseInstruction {
   type: typeof I_STR;
   xX: number; // Register X
   xY: number; // RAM address
+  hwordCount: 1;
 }
 
 export interface OutInstruction extends BaseInstruction {
   type: typeof I_OUT;
   xX: number; // Register X
   xY: number; // I/O pin
+  hwordCount: 1;
 }
 
 export interface JmpiInstruction extends BaseInstruction {
   type: typeof I_JMPI;
   imm16: number; // Immediate value
+  hwordCount: 2;
 }
 
 export interface JfiInstruction extends BaseInstruction {
   type: typeof I_JFI;
   imm16: number; // Immediate value
+  hwordCount: 2;
 }
 
 export interface JnfiInstruction extends BaseInstruction {
   type: typeof I_JNFI;
   imm16: number; // Immediate value
+  hwordCount: 2;
 }
 
 export interface LdiInstruction extends BaseInstruction {
   type: typeof I_LDI;
   imm32: number; // Immediate value
   xZ: number; // Register Z
+  hwordCount: 3;
 }
 
 export interface LdrInstruction extends BaseInstruction {
   type: typeof I_LDR;
   xY: number; // RAM address
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface JmprInstruction extends BaseInstruction {
   type: typeof I_JMPR;
   xY: number; // Register Y
+  hwordCount: 1;
 }
 
 export interface JfrInstruction extends BaseInstruction {
   type: typeof I_JFR;
   xY: number; // Register Y
+  hwordCount: 1;
 }
 
 export interface JnfrInstruction extends BaseInstruction {
   type: typeof I_JNFR;
   xY: number; // Register Y
+  hwordCount: 1;
 }
 
 export interface InInstruction extends BaseInstruction {
   type: typeof I_IN;
   xY: number; // I/O pin
   xZ: number; // Register Z
+  hwordCount: 1;
 }
 
 export interface HltInstruction extends BaseInstruction {
   type: typeof I_HLT;
+  hwordCount: 1;
 }
 
 export type Instruction =
@@ -411,7 +435,7 @@ export function decodeInstruction(
   hword: number,
   getNextHword: () => number | undefined,
   getNextNextHword: () => number | undefined,
-): { inst: Instruction; hwordCount: number } {
+): { inst: Instruction } {
   const opNybble = rshift(hword, 12);
   const x = rshift(hword, 8) & 0xf;
   const y = rshift(hword, 4) & 0xf;
@@ -424,8 +448,8 @@ export function decodeInstruction(
         xX: x,
         xY: y,
         xZ: z,
+        hwordCount: 1,
       },
-      hwordCount: 1,
     };
   }
 
@@ -438,8 +462,8 @@ export function decodeInstruction(
           // NOTE: reversed.
           xX: y,
           xY: x,
+          hwordCount: 1,
         },
-        hwordCount: 1,
       };
     } else if (z === 1) {
       return {
@@ -447,8 +471,8 @@ export function decodeInstruction(
           type: I_OUT,
           xX: x,
           xY: y,
+          hwordCount: 1,
         },
-        hwordCount: 1,
       };
     }
     throw new Error(`Invalid instruction ${toHex(hword)}`);
@@ -476,8 +500,8 @@ export function decodeInstruction(
           type: I_LDI,
           imm32,
           xZ: z,
+          hwordCount: 3,
         },
-        hwordCount: 3,
       };
     } else if (y !== 0) {
       throw new Error(`Invalid instruction ${toHex(hword)}`);
@@ -493,8 +517,8 @@ export function decodeInstruction(
           inst: {
             type: I_JMPI,
             imm16,
+            hwordCount: 2,
           },
-          hwordCount: 2,
         };
       }
       case 1: {
@@ -507,8 +531,8 @@ export function decodeInstruction(
           inst: {
             type: I_JNFI,
             imm16,
+            hwordCount: 2,
           },
-          hwordCount: 2,
         };
       }
       case 2: {
@@ -520,8 +544,8 @@ export function decodeInstruction(
           inst: {
             type: I_JFI,
             imm16,
+            hwordCount: 2,
           },
-          hwordCount: 2,
         };
       }
       default: {
@@ -536,8 +560,8 @@ export function decodeInstruction(
         type: I_LDR,
         xY: y,
         xZ: z,
+        hwordCount: 1,
       },
-      hwordCount: 1,
     };
   }
 
@@ -548,8 +572,8 @@ export function decodeInstruction(
           inst: {
             type: I_JMPR,
             xY: y,
+            hwordCount: 1,
           },
-          hwordCount: 1,
         };
       }
       case 1: {
@@ -558,8 +582,8 @@ export function decodeInstruction(
           inst: {
             type: I_JNFR,
             xY: y,
+            hwordCount: 1,
           },
-          hwordCount: 1,
         };
       }
       case 2: {
@@ -567,8 +591,8 @@ export function decodeInstruction(
           inst: {
             type: I_JFR,
             xY: y,
+            hwordCount: 1,
           },
-          hwordCount: 1,
         };
       }
       default: {
@@ -583,8 +607,8 @@ export function decodeInstruction(
         type: I_IN,
         xY: y,
         xZ: z,
+        hwordCount: 1,
       },
-      hwordCount: 1,
     };
   }
 
@@ -592,8 +616,8 @@ export function decodeInstruction(
     return {
       inst: {
         type: I_HLT,
+        hwordCount: 1,
       },
-      hwordCount: 1,
     };
   }
 

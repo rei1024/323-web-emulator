@@ -135,8 +135,8 @@ export class Emulator {
 
   private execInst(
     inst: Instruction,
-    hwordCount: number,
   ): { flag: 0 | 1; nextPC: number } {
+    const { hwordCount } = inst;
     switch (inst.type) {
       case I_ADD:
       case I_SUB:
@@ -271,14 +271,14 @@ export class Emulator {
     if (this.halted) {
       return "halt";
     }
-    const { inst, hwordCount } = this.getCurrentInst();
+    const { inst } = this.getCurrentInst();
     // DEBUG;
     // console.log(
     //   this.ram.get16(this.pc).toString(16).padStart(4, "0"),
     //   stringifyInstruction(inst).padEnd(16, " "),
     //   this.prettyRegisters(),
     // );
-    const { flag, nextPC } = this.execInst(inst, hwordCount);
+    const { flag, nextPC } = this.execInst(inst);
     this.flag = flag;
 
     this.pc = nextPC;
