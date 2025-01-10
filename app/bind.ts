@@ -18,6 +18,8 @@ export const $frequencyOutput = $type("#frequency-output", HTMLElement);
 export const $programCounter = $type("#program-counter", HTMLElement);
 export const $stepNumber = $type("#step-number", HTMLElement);
 
+export const $flag = $type("#flag", HTMLElement);
+
 export const $displayCanvas = $type("#display-canvas", HTMLCanvasElement);
 export const $currentInstruction = $type("#current-instruction", HTMLElement);
 

@@ -67,11 +67,16 @@ $ramDetails.addEventListener("toggle", () => {
   }
 });
 
+function saveRegisterConfig() {
+  localStorage.setItem(REGISTER_DEC_KEY, String($registerDec.checked));
+  localStorage.setItem(REGISTER_HEX_KEY, String($registerHex.checked));
+}
+
 $registerDec.addEventListener("click", () => {
   if (!$registerDec.checked && !$registerHex.checked) {
     $registerHex.checked = true;
   }
-  localStorage.setItem(REGISTER_DEC_KEY, String($registerDec.checked));
+  saveRegisterConfig();
   app.render();
 });
 
@@ -79,6 +84,6 @@ $registerHex.addEventListener("click", () => {
   if (!$registerDec.checked && !$registerHex.checked) {
     $registerDec.checked = true;
   }
-  localStorage.setItem(REGISTER_HEX_KEY, String($registerHex.checked));
+  saveRegisterConfig();
   app.render();
 });

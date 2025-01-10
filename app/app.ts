@@ -1,6 +1,7 @@
 import {
   $currentInstruction,
   $displayCanvas,
+  $flag,
   $frequencyOutput,
   $programCounter,
   $ram,
@@ -58,6 +59,7 @@ export class App {
       $programCounter.textContent = "0x" +
         state.pc.toString(16);
       $stepNumber.textContent = state.stepCount.toLocaleString();
+      $flag.textContent = String(state.flag);
       this.displayUI.render(emulatorManager.getDisplay());
       $currentInstruction.textContent = emulatorManager
         .getCurrentInstructionString();

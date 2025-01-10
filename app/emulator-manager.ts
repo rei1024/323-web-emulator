@@ -53,6 +53,21 @@ export class EmulatorManager {
     return this.emulator.getState();
   }
 
+  getStateWithOutput() {
+    return {
+      emulator: this.emulator.getState(),
+      output: this.outDevice.getState(),
+      instString: this.getCurrentInstructionString(),
+    };
+  }
+
+  loadState(
+    state: ReturnType<typeof EmulatorManager.prototype.getStateWithOutput>,
+  ) {
+    this.emulator.loadState(state.emulator);
+    this.outDevice.loadState(state.output);
+  }
+
   isHalted() {
     return this.emulator.isHalted();
   }

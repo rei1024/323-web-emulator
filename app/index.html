@@ -62,7 +62,7 @@
         </svg>
         Select file (.323)
       </label>
-      <div class="mb-3">
+      <section class="mb-3">
         <label for="assembly-input-textarea" class="visually-hidden form-label"
         >323 assembly input</label>
         <textarea
@@ -74,7 +74,7 @@
           rows="8"
           placeholder="; 323 Assembly language"
         ></textarea>
-      </div>
+      </section>
       <div
         data-test="control_buttons"
         class="btn-group"
@@ -144,15 +144,16 @@
           max="65"
         />
       </div>
-      <div class="mb-1">
+      <section class="mb-1">
         PC: <span id="program-counter" class="font-monospace"></span>
         Step number: <span id="step-number" class="font-monospace"></span>
+        Flag: <span id="flag" class="font-monospace"></span>
         <br class="d-inline d-md-none">Current instruction: <span
           id="current-instruction"
           class="font-monospace"
         ></span>
-      </div>
-      <div>
+      </section>
+      <section>
         <div>
           Registers:
 
@@ -174,9 +175,9 @@
         </div>
 
         <div id="registers"></div>
-      </div>
+      </section>
 
-      <div class="mb-1 d-flex flex-sm-row flex-column gap-2">
+      <section class="mb-1 d-flex flex-sm-row flex-column gap-2">
         <div>
           <div>
             Display:
@@ -257,8 +258,8 @@
             </div>
           </div>
         </div>
-      </div>
-      <div>
+      </section>
+      <section>
         <details id="ram-details">
           <summary>RAM</summary>
           <small>hword order (lower 16 bits + higher 16 bits)</small>
@@ -274,7 +275,7 @@
             </table> -->
           </div>
         </details>
-      </div>
+      </section>
     </main>
     <footer class="mt-3">
       <section>

@@ -54,6 +54,18 @@ export class Display {
     }
   }
 
+  getState() {
+    return {
+      array: this.getArray(),
+      currentData: this.currentData,
+    };
+  }
+
+  loadState(state: ReturnType<typeof Display.prototype.getState>) {
+    this.array = state.array;
+    this.currentData = state.currentData;
+  }
+
   getArray(): (0 | 1)[][] {
     return this.array.map((a) => a.slice());
   }
@@ -90,6 +102,16 @@ export class OutDeviceImpl implements OutDevice {
     } else {
       throw new Error(`Not implemented pin=${pin}`);
     }
+  }
+
+  getState() {
+    return {
+      display: this.display.getState(),
+    };
+  }
+
+  loadState(state: ReturnType<typeof OutDeviceImpl.prototype.getState>) {
+    this.display.loadState(state.display);
   }
 
   getDisplayOutput() {
