@@ -26,7 +26,7 @@ export class DisplayUI {
     const maxX = (array[0] ?? []).length;
     const maxY = array.length;
 
-    const n = Math.max(maxX, maxY) + 1;
+    const n = Math.max(maxX, maxY);
     const cellSize = width / n;
 
     context.fillStyle = "#212529";

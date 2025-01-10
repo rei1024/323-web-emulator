@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 100 100">
-  <rect x="5" y="5" width="90" height="90" rx="15" fill="white" />
+  <rect x="5" y="5" width="90" height="90" rx="15" fill="#FAFAD0" />
   <text fill="black" font-size="36" font-family="Inter, sans-serif" font-weight="500" x="16" y="64.06">
     323
   </text>

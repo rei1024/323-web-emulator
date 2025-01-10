@@ -5,25 +5,26 @@ export interface KeyboardInterface {
   getKey(): "none" | "left" | "up" | "right" | "down";
 }
 
+const map = {
+  none: 0,
+  left: -1,
+  up: -2,
+  right: -3,
+  down: -4,
+};
+
 export class InDeviceImpl implements InDevice {
   constructor(private config: { keyboard: KeyboardInterface }) {}
-  getData({ pin }: { pin: number }): { data: number; flag: 0 | 1 } {
+  getData(input: { pin: number }): { data: number; flag: 0 | 1 } {
+    const pin = input.pin;
     if (pin === 0xD) {
       const key = this.config.keyboard.getKey();
       return {
-        data: toUnsigned32(
-          {
-            none: 0,
-            left: -1,
-            up: -2,
-            right: -3,
-            down: -4,
-          }[key],
-        ),
+        data: toUnsigned32(map[key]),
         flag: 0,
       };
     }
-    throw new Error("Method not implemented.");
+    throw new Error(`Input for pin ${pin} not implemented.`);
   }
 }
 
@@ -47,9 +48,10 @@ export class Display {
     this.currentData = null;
     // NOTE: docs
     data = data & 0x1f;
-    this.array[data] = [...writeData.toString(2).padStart(32, "0")].map((x) =>
-      x === "0" ? 0 : 1
-    );
+    const row = this.array[data];
+    for (let i = 0; i < 32; i++) {
+      row[i] = ((writeData >>> (31 - i)) & 1) !== 0 ? 1 : 0;
+    }
   }
 
   getArray(): (0 | 1)[][] {
@@ -57,7 +59,7 @@ export class Display {
   }
 
   getArrayTransposed(): (0 | 1)[][] {
-    return transpose(this.getArray()).reverse();
+    return transpose(this.array).reverse();
   }
 
   pretty(): string[] {
