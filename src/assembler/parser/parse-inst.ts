@@ -139,6 +139,7 @@ export type ParsedOperand = {
    * with !
    */
   isPseudo: boolean;
+  /** 16 bit or 32 bit number */
   value: number;
 };
 
@@ -186,9 +187,7 @@ export function parseOperand(
   throw new ErrorWithLineContext(`Malformed operand '${operand}'`, ctx);
 }
 
-const isPseudoImmediate = (
-  o: ParsedOperand,
-) =>
+const isPseudoImmediate = (o: ParsedOperand) =>
   (o.type === "immediate" && o.isPseudo) ||
   (o.type === "label" && o.isPseudo);
 

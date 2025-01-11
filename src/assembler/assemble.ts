@@ -408,9 +408,13 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
   return new Uint32Array(u32);
 }
 
-export function assemble(
-  src: string,
-): { objectCode: ObjectCode; startingPC: number; machineCode: Uint32Array } {
+export type AssembleResult = {
+  objectCode: ObjectCode;
+  startingPC: number;
+  machineCode: Uint32Array;
+};
+
+export function assemble(src: string): AssembleResult {
   const objectCode = parseAssembly(src);
   const startingPC = objectCode.symbolTable.get("start") ??
     PROGRAM_ADDR_START_HWORD;

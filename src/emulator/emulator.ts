@@ -131,9 +131,10 @@ export class Emulator {
   }
 
   constructor(
-    machineCode: Uint32Array,
-    // TODO: incorporate to save-state
-    { startingPC }: { startingPC?: number | undefined } = {},
+    { machineCode, startingPC }: {
+      machineCode: Uint32Array;
+      startingPC?: number | undefined;
+    },
     devices: {
       inDevice?: InDevice;
       outDevice?: OutDevice;

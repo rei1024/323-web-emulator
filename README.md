@@ -18,3 +18,23 @@ An emulator for the
 ```sh
 deno task dev
 ```
+
+#### Unit tests
+
+```sh
+deno task t
+```
+
+with file watcher
+
+```sh
+deno task w
+```
+
+#### Production build
+
+Output to the `dist` directory.
+
+```sh
+deno task build
+```
