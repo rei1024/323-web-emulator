@@ -8,6 +8,8 @@ const outputPath = "./dist/index.dist.js";
 
 const target = ["chrome99", "firefox99", "safari15"];
 
+const isDev = Deno.args.includes("dev");
+
 await esbuild.build({
   plugins: [...denoPlugins()],
   entryPoints: [entryPoint],
@@ -17,6 +19,7 @@ await esbuild.build({
   minify: true,
   target: target,
   treeShaking: true,
+  sourcemap: isDev ? "linked" : false,
 });
 
 await esbuild.build({
@@ -43,6 +46,6 @@ console.log(
 await Deno.copyFile("./app/index.html", "./dist/index.html");
 await Deno.copyFile("./static/favicon.svg", "./dist/favicon.svg");
 
-if (Deno.args.includes("with-serve")) {
+if (isDev) {
   Deno.serve((req) => serveDir(req, { fsRoot: "./dist" }));
 }
