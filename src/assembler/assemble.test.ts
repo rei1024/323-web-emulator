@@ -4,6 +4,8 @@ import {
   b3s23MachineCode,
   expAsm,
   expMachineCode,
+  sortMachineCode,
+  sqrtMachineCode,
   textAsm,
   textMachineCode,
 } from "../test/data.ts";
@@ -26,7 +28,8 @@ function correct(asm: string, expectedMachineCode: Uint32Array) {
   const expected = toHWordString(expectedMachineCode);
 
   try {
-    assertEquals(toHWordString(assemble(asm).machineCode), expected);
+    const assembled = toHWordString(assemble(asm).machineCode);
+    assertEquals(assembled, expected);
   } catch (error) {
     if (error instanceof ErrorWithLineContext) {
       error.message = error.message + " Ctx:" + JSON.stringify(error.ctx);
@@ -53,6 +56,19 @@ Deno.test("assemble b3s23", () => {
 
 Deno.test("assemble text", () => {
   correct(textAsm, textMachineCode);
+});
+
+Deno.test("assemble sort", async () => {
+  const sortAsm = await Deno.readTextFile("./static/program/sort.323");
+  // Lua removes trailing zero
+  const buf = new Uint32Array(sortMachineCode.length + 32);
+  buf.set(sortMachineCode);
+  correct(sortAsm, buf);
+});
+
+Deno.test("assemble sqrt", async () => {
+  const sqrtAsm = await Deno.readTextFile("./static/program/sqrt.323");
+  correct(sqrtAsm, sqrtMachineCode);
 });
 
 Deno.test("assemble programs", async () => {

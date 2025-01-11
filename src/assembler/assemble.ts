@@ -339,7 +339,8 @@ class Parser {
       );
     }
 
-    for (let i = 0; i < n - ((this.addrAt - 1) % n) - 1; i++) {
+    const count = n - ((this.addrAt - 1) % n) - 1;
+    for (let i = 0; i < count; i++) {
       this.pushHword(0, ctx);
     }
   }
