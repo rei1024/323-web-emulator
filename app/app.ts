@@ -6,6 +6,8 @@ import {
   $programCounter,
   $ram,
   $ramDetails,
+  $ramPageLeft,
+  $ramPageRight,
   $registerDec,
   $registerHex,
   $registers,
@@ -30,7 +32,8 @@ export class App {
   private message: string = "";
   private displayUI = new DisplayUI($displayCanvas);
   private registersUI = new RegistersUI($registers);
-  private ramUI = new RAMUI($ram);
+  private ramUI = new RAMUI($ram, $ramPageLeft, $ramPageRight);
+
   constructor() {
     this.valve = new Valve((value) => {
       this.stepN(value);
@@ -125,6 +128,16 @@ export class App {
         ? result.cause.message
         : result.message;
     }
+    this.render();
+  }
+
+  ramPageInc() {
+    this.ramUI.increment();
+    this.render();
+  }
+
+  ramPageDec() {
+    this.ramUI.decrement();
     this.render();
   }
 }

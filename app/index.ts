@@ -3,6 +3,8 @@ import {
   $assemblyInputTextarea,
   $frequencyInput,
   $ramDetails,
+  $ramPageLeft,
+  $ramPageRight,
   $registerDec,
   $registerHex,
   $resetButton,
@@ -86,4 +88,12 @@ $registerHex.addEventListener("click", () => {
   }
   saveRegisterConfig();
   app.render();
+});
+
+$ramPageLeft.addEventListener("click", () => {
+  app.ramPageDec();
+});
+
+$ramPageRight.addEventListener("click", () => {
+  app.ramPageInc();
 });

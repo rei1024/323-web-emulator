@@ -35,3 +35,5 @@ export const $keyDown = $type("#key-down", HTMLButtonElement);
 
 export const $ramDetails = $type("#ram-details", HTMLDetailsElement);
 export const $ram = $type("#ram", HTMLElement);
+export const $ramPageLeft = $type("#ram-page-left", HTMLButtonElement);
+export const $ramPageRight = $type("#ram-page-right", HTMLButtonElement);

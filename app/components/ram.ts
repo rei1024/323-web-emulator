@@ -6,33 +6,50 @@ function split(u32: number) {
 
 const WORD_OFFSET = 128;
 
+const ROWS_PER_PAGE = 32;
+
+const CHUNK = 16;
+
+function renderHeader($h: HTMLElement, i: number) {
+  $h.textContent = "0x" +
+    (((CHUNK * i) + WORD_OFFSET * 2).toString(16).toUpperCase().padStart(
+      4,
+      "0",
+    ));
+}
+
 export class RAMUI {
   private cells: HTMLElement[] = [];
-  constructor(private $root: HTMLElement) {
+  private headers: HTMLElement[] = [];
+
+  private page = 0;
+  constructor(
+    private $root: HTMLElement,
+    private $leftPage: HTMLButtonElement,
+    private $rightPage: HTMLButtonElement,
+  ) {
   }
 
   initialize() {
+    this.cells = [];
+    this.headers = [];
+    this.page = 0;
+
     const $table = create("table");
     $table.classList.add("font-monospace");
 
-    this.cells = [];
-
-    const chunk = 16;
-    for (let i = 0; i < 64; i++) {
+    for (let i = 0; i < ROWS_PER_PAGE; i++) {
       const $row = create("tr");
       const $td = create("td");
-      for (let j = 0; j < chunk; j++) {
+      for (let j = 0; j < CHUNK; j++) {
         const $cell = create("span");
         $cell.style.marginRight = "8px";
         this.cells.push($cell);
         $td.append($cell);
       }
       const $th = create("th");
-      $th.textContent = "0x" +
-        (((chunk * i) + WORD_OFFSET * 2).toString(16).toUpperCase().padStart(
-          4,
-          "0",
-        ));
+      this.headers.push($th);
+      renderHeader($th, i);
       $th.style.paddingRight = "8px";
       $row.append($th, $td);
 
@@ -42,16 +59,30 @@ export class RAMUI {
     this.$root.replaceChildren($table);
   }
 
+  increment() {
+    this.page++;
+  }
+
+  decrement() {
+    this.page--;
+  }
+
   render(ram: number[], pc: number) {
-    // console.log(ram);
-    const hwords = ram.slice(WORD_OFFSET).flatMap((word) => split(word));
+    this.$leftPage.disabled = this.page <= 0;
+
+    const startWordAddress = WORD_OFFSET +
+      this.page * ROWS_PER_PAGE * (CHUNK >> 1);
+    const hwords = ram.slice(startWordAddress).flatMap((word) => split(word));
+
+    this.$rightPage.disabled = hwords.length === 0;
+
     const cells = this.cells;
     for (let i = 0; i < cells.length; i++) {
       const hword = hwords[i];
       if (hword == undefined) {
         return;
       }
-      const addr = WORD_OFFSET * 2 + i;
+      const addr = startWordAddress * 2 + i;
       const cell = cells[i];
       if (pc === addr) {
         cell.style.backgroundColor = "#03dffc66";
@@ -59,6 +90,10 @@ export class RAMUI {
         cell.style.backgroundColor = "";
       }
       cell.textContent = hword.toString(16).toUpperCase().padStart(4, "0");
+    }
+
+    for (let i = 0; i < ROWS_PER_PAGE; i++) {
+      renderHeader(this.headers[i], i + this.page * ROWS_PER_PAGE);
     }
   }
 }
