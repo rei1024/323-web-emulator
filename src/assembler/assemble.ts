@@ -37,14 +37,18 @@ type ObjectCodeItem =
 type ObjectCode = {
   items: ObjectCodeItem[];
   symbolTable: Map<string, number>;
-  // TODO: { hwordCount: number; lineIndex: number; }
-  addrToLineIndex: Map<number, number>;
+  addrToLineIndex: LineIndexMap;
 };
+
+export type LineIndexMap = Map<
+  number,
+  { hwordCount: number; lineIndex: number }
+>;
 
 class Parser {
   private items: ObjectCodeItem[] = [];
   private symbolTable = new Map<string, number>();
-  private addrToLineIndex = new Map<number, number>();
+  private addrToLineIndex: LineIndexMap = new Map();
   /**
    * hword based address
    */
@@ -296,8 +300,16 @@ class Parser {
 
   pushWord(value: number, ctx: LineContext) {
     this.items.push({ type: "word", value, ctx });
-    this.addrToLineIndex.set(this.addrAt, ctx.lineIndex);
-    this.addrAt += 2;
+    const COUNT = 2;
+    this.addrToLineIndex.set(this.addrAt, {
+      lineIndex: ctx.lineIndex,
+      hwordCount: COUNT,
+    });
+    this.addrToLineIndex.set(this.addrAt + 1, {
+      lineIndex: ctx.lineIndex,
+      hwordCount: COUNT,
+    });
+    this.addrAt += COUNT;
   }
 
   pushLabel(
@@ -305,7 +317,6 @@ class Parser {
     immidiateHwordCount: number,
     ctx: LineContext,
   ) {
-    // TODO: is this correct?
     const isWordBased = label.isWordBased;
     this.items.push({
       type: "label",
@@ -314,13 +325,25 @@ class Parser {
       immidiateHwordCount,
       ctx,
     });
-    this.addrToLineIndex.set(this.addrAt, ctx.lineIndex);
+    this.addrToLineIndex.set(this.addrAt, {
+      lineIndex: ctx.lineIndex,
+      hwordCount: immidiateHwordCount,
+    });
+    if (immidiateHwordCount === 2) {
+      this.addrToLineIndex.set(this.addrAt + 1, {
+        lineIndex: ctx.lineIndex,
+        hwordCount: immidiateHwordCount,
+      });
+    }
     this.addrAt += immidiateHwordCount;
   }
 
   pushHword(value: number, ctx: LineContext) {
     this.items.push({ type: "hword", value, ctx });
-    this.addrToLineIndex.set(this.addrAt, ctx.lineIndex);
+    this.addrToLineIndex.set(this.addrAt, {
+      lineIndex: ctx.lineIndex,
+      hwordCount: 1,
+    });
     this.addrAt++;
   }
 

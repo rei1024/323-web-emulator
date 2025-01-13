@@ -75,6 +75,30 @@
           placeholder="; 323 Assembly language"
         ></textarea>
       </section>
+      <section>
+        <details>
+          <summary style="user-select: none">Source</summary>
+          <button
+            id="remove-all-breakpoints"
+            type="button"
+            disabled
+            class="btn btn-primary btn-sm"
+          >
+            Remove all breakpoints
+          </button>
+          <div
+            id="source-lines"
+            class="mt-1 font-monospace border"
+            style="overflow-y: scroll; height: 240px; resize: vertical"
+          >
+            <!-- <input type="checkbox" class="d-inline">
+            <pre
+              style="white-space: pre-wrap"
+              class="mb-0 d-inline"
+            >start: ld 3,x1</pre> -->
+          </div>
+        </details>
+      </section>
       <div
         data-test="control_buttons"
         class="btn-group"
@@ -307,7 +331,7 @@
       </section>
       <section>
         <details id="ram-details">
-          <summary>RAM</summary>
+          <summary style="user-select: none">RAM</summary>
           <small>hword order (lower 16 bits + higher 16 bits)</small>
           <div class="btn-group">
             <button

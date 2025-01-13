@@ -110,6 +110,10 @@ export class Emulator {
     return this.halted;
   }
 
+  getPC() {
+    return this.pc;
+  }
+
   getState() {
     return {
       stepCount: this.stepCount,

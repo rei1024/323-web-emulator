@@ -6,6 +6,12 @@ export const $assemblyInputTextarea = $type(
   HTMLTextAreaElement,
 );
 
+export const $removeAllBreakpoints = $type(
+  "#remove-all-breakpoints",
+  HTMLButtonElement,
+);
+export const $sourceLines = $type("#source-lines", HTMLElement);
+
 export const $resetButton = $type("#reset", HTMLButtonElement);
 export const $toggleButton = $type("#toggle", HTMLButtonElement);
 export const $stepButton = $type("#step-button", HTMLButtonElement);

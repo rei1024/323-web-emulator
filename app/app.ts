@@ -23,6 +23,7 @@ import { getKey } from "./components/keyboard.ts";
 import { renderMessage } from "./components/message.ts";
 import { RAMUI } from "./components/ram.ts";
 import { RegistersUI } from "./components/registers.ts";
+import { SourceUI } from "./components/source.ts";
 import type { AppState } from "./core.ts";
 import { EmulatorManager, getErrorMessage } from "./emulator-manager.ts";
 import { Valve } from "./util/valve.ts";
@@ -33,6 +34,7 @@ export class App {
   private valve: Valve;
   private emulatorManager: EmulatorManager | null = null;
   private message: string = "";
+  private sourceUI = new SourceUI();
   private displayUI = new DisplayUI($displayCanvas);
   private registersUI = new RegistersUI($registers);
   private ramUI = new RAMUI($ram, $ramPageLeft, $ramPageRight);
@@ -66,6 +68,8 @@ export class App {
     const emulatorManager = this.emulatorManager;
     if (emulatorManager != undefined) {
       const state = emulatorManager.getState();
+
+      this.sourceUI.render(this.emulatorManager?.getCurrentLineIndex());
       $programCounter.textContent = "0x" +
         state.pc.toString(16);
       $stepNumber.textContent = state.stepCount.toLocaleString();
@@ -102,6 +106,12 @@ export class App {
     this.message = "";
     this.registersUI.initialize();
     this.ramUI.initialize();
+    const noSourceReset = this.emulatorManager != null &&
+      this.emulatorManager.getSource() === value;
+    if (!noSourceReset) {
+      this.sourceUI.reset();
+    }
+
     if (value.trim() === "") {
       this.message = "Program is empty";
       this.state = "Error";
@@ -114,6 +124,9 @@ export class App {
           return getKey();
         },
       });
+      if (!noSourceReset) {
+        this.sourceUI.initialize(value);
+      }
       this.state = "Stop";
     } catch (error) {
       this.message = getErrorMessage(error);
@@ -149,12 +162,19 @@ export class App {
   }
 
   private stepN(n: number) {
-    const result = this.emulatorManager?.stepN(n, $historyEnable.checked);
+    const result = this.emulatorManager?.stepN(
+      n,
+      $historyEnable.checked,
+      this.sourceUI.getBreakpointLineIndex(),
+    );
     if (result instanceof Error) {
       this.state = "Error";
       this.message = result.cause instanceof Error
         ? result.cause.message
         : result.message;
+    }
+    if (this.state === "Run" && result === "breakpoint") {
+      this.state = "Stop";
     }
     this.render();
   }
@@ -167,5 +187,9 @@ export class App {
   ramPageDec() {
     this.ramUI.decrement();
     this.render();
+  }
+
+  removeAllBreakpoints() {
+    this.sourceUI.removeAllBreakpoints();
   }
 }

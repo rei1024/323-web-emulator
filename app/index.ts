@@ -8,6 +8,7 @@ import {
   $ramPageRight,
   $registerDec,
   $registerHex,
+  $removeAllBreakpoints,
   $resetButton,
   $selectFileInput,
   $stepBack,
@@ -112,4 +113,8 @@ $stepBack.addEventListener("click", () => {
 
 $useKeyboard.addEventListener("click", () => {
   onClickUseKeyboard();
+});
+
+$removeAllBreakpoints.addEventListener("click", () => {
+  app.removeAllBreakpoints();
 });

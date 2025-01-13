@@ -1,4 +1,4 @@
-import { assemble } from "../src/assembler/assemble.ts";
+import { assemble, type LineIndexMap } from "../src/assembler/assemble.ts";
 import { ErrorWithLineContext } from "../src/assembler/core.ts";
 import {
   InDeviceImpl,
@@ -22,13 +22,17 @@ type State = ReturnType<typeof EmulatorManager.prototype.getStateWithOutput>;
 const MAX_HISTORY = 32;
 
 export class EmulatorManager {
+  private source: string;
   private histories: State[] = [];
   private emulator: Emulator;
   private outDevice: OutDeviceImpl;
   private inDevice: InDeviceImpl;
+  private lineIndexMap: LineIndexMap;
 
   constructor(src: string, keyboard: KeyboardInterface) {
+    this.source = src;
     const assembleResult = assemble(src);
+    this.lineIndexMap = assembleResult.objectCode.addrToLineIndex;
     this.outDevice = new OutDeviceImpl();
     this.inDevice = new InDeviceImpl({ keyboard });
     this.emulator = new Emulator(assembleResult, {
@@ -37,11 +41,23 @@ export class EmulatorManager {
     });
   }
 
+  getSource() {
+    return this.source;
+  }
+
+  getCurrentLineIndex() {
+    return this.lineIndexMap.get(this.emulator.getPC())?.lineIndex ?? undefined;
+  }
+
   resetHistory() {
     this.histories = [];
   }
 
-  stepN(n: number, historyEnabled: boolean) {
+  stepN(
+    n: number,
+    historyEnabled: boolean,
+    breakpointLineIndexSet: ReadonlySet<number>,
+  ) {
     const emulator = this.emulator;
     try {
       for (let i = 0; i < n; i++) {
@@ -52,6 +68,14 @@ export class EmulatorManager {
           }
         }
         const result = emulator.step();
+        if (breakpointLineIndexSet.size > 0) {
+          const lineIndex = this.getCurrentLineIndex();
+          if (
+            lineIndex != null && breakpointLineIndexSet.has(lineIndex)
+          ) {
+            return "breakpoint";
+          }
+        }
         if (result === "halt") {
           return "halt";
         }
