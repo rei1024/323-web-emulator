@@ -33,6 +33,8 @@ export const $keyLeft = $type("#key-left", HTMLButtonElement);
 export const $keyRight = $type("#key-right", HTMLButtonElement);
 export const $keyDown = $type("#key-down", HTMLButtonElement);
 
+export const $useKeyboard = $type("#use-keyboard-button", HTMLButtonElement);
+
 export const $ramDetails = $type("#ram-details", HTMLDetailsElement);
 export const $ram = $type("#ram", HTMLElement);
 export const $ramPageLeft = $type("#ram-page-left", HTMLButtonElement);

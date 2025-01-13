@@ -13,8 +13,10 @@ import {
   $stepBack,
   $stepButton,
   $toggleButton,
+  $useKeyboard,
 } from "./bind.ts";
 import { setupFrequencyInput } from "./components/frequency.ts";
+import { onClickUseKeyboard } from "./components/keyboard.ts";
 
 const REGISTER_DEC_KEY = "323-register-dec";
 const REGISTER_HEX_KEY = "323-register-hex";
@@ -106,4 +108,8 @@ $historyEnable.addEventListener("change", () => {
 
 $stepBack.addEventListener("click", () => {
   app.stepBack();
+});
+
+$useKeyboard.addEventListener("click", () => {
+  onClickUseKeyboard();
 });
