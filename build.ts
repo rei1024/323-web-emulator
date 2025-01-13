@@ -43,7 +43,12 @@ console.log(
     `\n${compressed.byteLength.toLocaleString()} bytes (gzip)`,
 );
 
-await Deno.copyFile("./app/index.html", "./dist/index.html");
+const html = await Deno.readTextFile("./app/index.html");
+await Deno.writeTextFile(
+  "./dist/index.html",
+  html.replaceAll("%__DATE__%", new Date().toISOString()),
+);
+
 await Deno.copyFile("./static/favicon.svg", "./dist/favicon.svg");
 
 if (isDev) {
