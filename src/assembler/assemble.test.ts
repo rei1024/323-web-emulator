@@ -75,6 +75,9 @@ Deno.test("assemble programs", async () => {
   const dir = "./static/program/";
   for await (const file of Deno.readDir(dir)) {
     if (file.isFile) {
+      if (!file.name.endsWith(".323")) {
+        continue;
+      }
       const src = new TextDecoder().decode(
         await Deno.readFile(dir + file.name),
       );
