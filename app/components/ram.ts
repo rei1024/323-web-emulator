@@ -38,6 +38,20 @@ export class RAMUI {
     const $table = create("table");
     $table.classList.add("font-monospace");
 
+    {
+      const $byteHeaderRow = create("tr");
+      $byteHeaderRow.append(create("td"));
+      const $byteHeader = create("th");
+      for (let j = 0; j < CHUNK; j++) {
+        const $cell = create("span");
+        $cell.style.marginRight = "8px";
+        $cell.textContent = j.toString(16).toUpperCase().padStart(4, "0");
+        $byteHeader.append($cell);
+      }
+      $byteHeaderRow.append($byteHeader);
+      $table.append($byteHeaderRow);
+    }
+
     for (let i = 0; i < ROWS_PER_PAGE; i++) {
       const $row = create("tr");
       const $td = create("td");

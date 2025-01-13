@@ -105,8 +105,8 @@ export function onClickUseKeyboard() {
 
 function render() {
   $useKeyboard.textContent = useHardware
-    ? "Disable keyboard"
-    : "Use keyboard arrows";
+    ? "Disable arrow keys"
+    : "Use arrow keys";
   $useKeyboard.classList.add(useHardware ? "btn-danger" : "btn-primary");
   $useKeyboard.classList.remove(useHardware ? "btn-primary" : "btn-danger");
 }
