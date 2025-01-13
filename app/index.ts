@@ -2,6 +2,7 @@ import { App } from "./app.ts";
 import {
   $assemblyInputTextarea,
   $frequencyInput,
+  $historyEnable,
   $ramDetails,
   $ramPageLeft,
   $ramPageRight,
@@ -9,6 +10,7 @@ import {
   $registerHex,
   $resetButton,
   $selectFileInput,
+  $stepBack,
   $stepButton,
   $toggleButton,
 } from "./bind.ts";
@@ -96,4 +98,12 @@ $ramPageLeft.addEventListener("click", () => {
 
 $ramPageRight.addEventListener("click", () => {
   app.ramPageInc();
+});
+
+$historyEnable.addEventListener("change", () => {
+  app.render();
+});
+
+$stepBack.addEventListener("click", () => {
+  app.stepBack();
 });

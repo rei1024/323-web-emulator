@@ -128,6 +128,7 @@ export class Emulator {
     this.flag = state.flag;
     this.cache.loadState(state.cache);
     this.ram.loadState(state.ram);
+    this.pc = state.pc;
   }
 
   constructor(

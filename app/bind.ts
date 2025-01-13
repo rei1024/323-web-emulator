@@ -37,3 +37,11 @@ export const $ramDetails = $type("#ram-details", HTMLDetailsElement);
 export const $ram = $type("#ram", HTMLElement);
 export const $ramPageLeft = $type("#ram-page-left", HTMLButtonElement);
 export const $ramPageRight = $type("#ram-page-right", HTMLButtonElement);
+
+export const $historyEnable = $type("#history-enable", HTMLInputElement);
+export const $historyEnableLabel = $type(
+  "#history-enable-label",
+  HTMLElement,
+);
+
+export const $stepBack = $type("#step-back-button", HTMLButtonElement);

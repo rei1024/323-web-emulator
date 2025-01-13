@@ -3,6 +3,8 @@ import {
   $displayCanvas,
   $flag,
   $frequencyOutput,
+  $historyEnable,
+  $historyEnableLabel,
   $programCounter,
   $ram,
   $ramDetails,
@@ -11,6 +13,7 @@ import {
   $registerDec,
   $registerHex,
   $registers,
+  $stepBack,
   $stepNumber,
 } from "./bind.ts";
 import { renderControlButtons } from "./components/control-buttons.ts";
@@ -47,6 +50,10 @@ export class App {
       this.state = "Halted";
     }
 
+    if ($historyEnable.checked) {
+      this.valve.frequency = Math.min(this.valve.frequency, 5000);
+    }
+
     this.valve.disabled = this.state !== "Run";
 
     // Need to this otherwise button can't be clicked
@@ -73,6 +80,19 @@ export class App {
       if ($ramDetails.open) {
         this.ramUI.render(state.ram, state.pc);
       }
+
+      if (!$historyEnable.checked) {
+        emulatorManager.resetHistory();
+      }
+    }
+
+    $historyEnableLabel.textContent = $historyEnable.checked ? "On" : "Off";
+    if ($historyEnable.checked) {
+      $stepBack.disabled = this.state === "Run" ||
+        !(this.emulatorManager?.canStepBack() ?? true);
+      $stepBack.classList.remove("d-none");
+    } else {
+      $stepBack.classList.add("d-none");
     }
 
     this.prevState = this.state;
@@ -120,8 +140,16 @@ export class App {
     this.stepN(1);
   }
 
+  stepBack() {
+    const res = this.emulatorManager?.stepBack();
+    if (res && this.state === "Halted") {
+      this.state = "Stop";
+    }
+    this.render();
+  }
+
   private stepN(n: number) {
-    const result = this.emulatorManager?.stepN(n);
+    const result = this.emulatorManager?.stepN(n, $historyEnable.checked);
     if (result instanceof Error) {
       this.state = "Error";
       this.message = result.cause instanceof Error

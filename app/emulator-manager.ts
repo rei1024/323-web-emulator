@@ -17,7 +17,12 @@ export function getErrorMessage(error: unknown): string {
   }
 }
 
+type State = ReturnType<typeof EmulatorManager.prototype.getStateWithOutput>;
+
+const MAX_HISTORY = 32;
+
 export class EmulatorManager {
+  private histories: State[] = [];
   private emulator: Emulator;
   private outDevice: OutDeviceImpl;
   private inDevice: InDeviceImpl;
@@ -32,10 +37,20 @@ export class EmulatorManager {
     });
   }
 
-  stepN(n: number) {
+  resetHistory() {
+    this.histories = [];
+  }
+
+  stepN(n: number, historyEnabled: boolean) {
     const emulator = this.emulator;
     try {
       for (let i = 0; i < n; i++) {
+        if (historyEnabled) {
+          this.histories.push(this.getStateWithOutput());
+          if (this.histories.length > MAX_HISTORY) {
+            this.histories.shift();
+          }
+        }
         const result = emulator.step();
         if (result === "halt") {
           return "halt";
@@ -45,6 +60,19 @@ export class EmulatorManager {
     } catch (error) {
       return new Error("Runtime Error", { cause: error });
     }
+  }
+
+  canStepBack() {
+    return this.histories.length > 0;
+  }
+
+  stepBack(): boolean {
+    const prevState = this.histories.pop();
+    if (prevState != null) {
+      this.loadState(prevState);
+      return true;
+    }
+    return false;
   }
 
   getState() {
@@ -59,9 +87,7 @@ export class EmulatorManager {
     };
   }
 
-  loadState(
-    state: ReturnType<typeof EmulatorManager.prototype.getStateWithOutput>,
-  ) {
+  loadState(state: State) {
     this.emulator.loadState(state.emulator);
     this.outDevice.loadState(state.output);
   }
