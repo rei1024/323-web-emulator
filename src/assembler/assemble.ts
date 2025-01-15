@@ -266,6 +266,7 @@ class Parser {
             } else if (operandInfo.immediateHwordCount === 2) {
               this.pushWord(operand.value, ctx);
             } else {
+              operandInfo.immediateHwordCount satisfies never;
               throw new ErrorWithLineContext(
                 "Internal error: parseInstruction",
                 ctx,

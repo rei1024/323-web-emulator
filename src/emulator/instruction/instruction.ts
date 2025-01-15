@@ -446,6 +446,7 @@ export function decodeInstruction(
   const arithType = arithOpNybbleToType[opNybble];
   if (arithType !== undefined) {
     return {
+      // deno-lint-ignore no-explicit-any
       type: arithType as any,
       xX: x,
       xY: y,

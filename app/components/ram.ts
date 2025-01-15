@@ -106,8 +106,9 @@ export class RAMUI {
       cell.textContent = hword.toString(16).toUpperCase().padStart(4, "0");
     }
 
+    const OFFSET = this.page * ROWS_PER_PAGE;
     for (let i = 0; i < ROWS_PER_PAGE; i++) {
-      renderHeader(this.headers[i], i + this.page * ROWS_PER_PAGE);
+      renderHeader(this.headers[i], i + OFFSET);
     }
   }
 }

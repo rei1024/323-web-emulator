@@ -5,7 +5,7 @@ export type InstructionInfo = {
   opcode: number;
   // TODO: combine argsPattern and registers?
   argsPattern: `${"R" | "I" | ""}${"R" | "I" | ""}${"R" | "I" | ""}`;
-  registers: (number | { immediateHwordCount: number })[];
+  registers: (number | { immediateHwordCount: 1 | 2 })[];
 };
 
 export const instructionSet: Record<string, InstructionInfo[]> = {

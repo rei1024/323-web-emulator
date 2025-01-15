@@ -22,5 +22,9 @@ jobs:
           deno-version: v2.x # latest
       - name: Check Format
         run: deno fmt --check
+      - name: Lint
+        run: deno lint
+      - name: Check
+        run: deno check app/index.ts
       - name: Run Test
         run: deno task t
