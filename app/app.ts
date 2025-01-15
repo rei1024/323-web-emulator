@@ -92,7 +92,7 @@ export class App {
 
     $historyEnableLabel.textContent = $historyEnable.checked ? "On" : "Off";
     if ($historyEnable.checked) {
-      $stepBack.disabled = this.state === "Run" ||
+      $stepBack.disabled = this.state === "Init" || this.state === "Run" ||
         !(this.emulatorManager?.canStepBack() ?? true);
       $stepBack.classList.remove("d-none");
     } else {

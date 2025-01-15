@@ -59,16 +59,18 @@ export class EmulatorManager {
     breakpointLineIndexSet: ReadonlySet<number>,
   ) {
     const emulator = this.emulator;
+    const histories = this.histories;
+    const hasBreakpoint = breakpointLineIndexSet.size > 0;
     try {
       for (let i = 0; i < n; i++) {
         if (historyEnabled) {
-          this.histories.push(this.getStateWithOutput());
-          if (this.histories.length > MAX_HISTORY) {
-            this.histories.shift();
+          histories.push(this.getStateWithOutput());
+          if (histories.length > MAX_HISTORY) {
+            histories.shift();
           }
         }
         const result = emulator.step();
-        if (breakpointLineIndexSet.size > 0) {
+        if (hasBreakpoint) {
           const lineIndex = this.getCurrentLineIndex();
           if (
             lineIndex != null && breakpointLineIndexSet.has(lineIndex)

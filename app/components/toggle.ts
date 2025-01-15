@@ -5,6 +5,8 @@ const STOP = "Stop";
 const primary = "btn-primary";
 const danger = "btn-danger";
 
+let currentType: "Run" | "Stop" = "Run";
+
 const makeSVG = (pathStr: string) => {
   return `<svg width="16" height="16" viewBox="0 0 16 16">${pathStr}</svg>`;
 };
@@ -32,14 +34,20 @@ const getStop = () => {
 const stop = getStop();
 
 export function startButton($toggle: HTMLButtonElement) {
-  $toggle.disabled = false;
+  if (currentType === "Run") {
+    return;
+  }
+  currentType = "Run";
   $toggle.replaceChildren(start);
   $toggle.classList.add(primary);
   $toggle.classList.remove(danger);
 }
 
 export function stopButton($toggle: HTMLButtonElement) {
-  $toggle.disabled = false;
+  if (currentType === "Stop") {
+    return;
+  }
+  currentType = "Stop";
   $toggle.replaceChildren(stop);
   $toggle.classList.remove(primary);
   $toggle.classList.add(danger);

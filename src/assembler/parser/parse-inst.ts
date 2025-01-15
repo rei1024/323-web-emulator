@@ -77,7 +77,7 @@ export function parseInstruction(
 
   if (!op) {
     throw new ErrorWithLineContext(
-      `Malformed instruction. '${ctx.lineSource}'`,
+      `Malformed instruction.`,
       ctx,
     );
   }
