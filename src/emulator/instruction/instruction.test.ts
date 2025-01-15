@@ -2,6 +2,8 @@ import { assertEquals } from "@std/assert";
 import {
   I_ADD,
   I_HLT,
+  I_JFI,
+  I_JFR,
   I_JMPI,
   I_LDI,
   I_OUT,
@@ -160,6 +162,44 @@ Deno.test("decodeInstruction hlt", () => {
   const expected = [encoded];
   assertEquals(decoded, {
     type: I_HLT,
+    hwordCount: expected.length as 1,
+  });
+
+  const reencoded = encodeInstruction(decoded);
+  assertEquals(reencoded, expected);
+});
+
+Deno.test("decodeInstruction jf", () => {
+  const encoded = 0xe002;
+  const decoded = decodeInstruction(encoded, () => {
+    return 100;
+  }, () => {
+    throw new Error();
+  });
+
+  const expected = [encoded, 100];
+  assertEquals(decoded, {
+    type: I_JFI,
+    imm16: 100,
+    hwordCount: expected.length as 2,
+  });
+
+  const reencoded = encodeInstruction(decoded);
+  assertEquals(reencoded, expected);
+});
+
+Deno.test("decodeInstruction JFR", () => {
+  const encoded = 0xe252;
+  const decoded = decodeInstruction(encoded, () => {
+    throw new Error();
+  }, () => {
+    throw new Error();
+  });
+
+  const expected = [encoded];
+  assertEquals(decoded, {
+    type: I_JFR,
+    xY: 5,
     hwordCount: expected.length as 1,
   });
 

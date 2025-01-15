@@ -379,7 +379,7 @@ export function encodeInstruction(inst: Instruction): number[] {
     case I_JNFI: {
       return [
         typeToTopNybble[inst.type] << 12 |
-        (inst.type === I_JMPI ? 0 : inst.type === I_JFI ? 1 : 2),
+        (inst.type === I_JMPI ? 0 : inst.type === I_JFI ? 2 : 1),
         inst.imm16,
       ];
     }
@@ -396,12 +396,16 @@ export function encodeInstruction(inst: Instruction): number[] {
         typeToTopNybble[inst.type] << 12 | 1 << 8 | inst.xY << 4 | inst.xZ,
       ];
     }
-    case I_JMPR:
+    case I_JMPR: {
+      return [
+        typeToTopNybble[inst.type] << 12 | 2 << 8 | (inst.xY << 4),
+      ];
+    }
     case I_JFR:
     case I_JNFR: {
       return [
-        typeToTopNybble[inst.type] << 12 | 2 << 8 |
-        (inst.type === I_JMPR ? 0 : inst.type === I_JFR ? 1 : 2) | inst.xY,
+        typeToTopNybble[inst.type] << 12 | 2 << 8 | (inst.xY << 4) |
+        (inst.type === I_JFR ? 2 : 1),
       ];
     }
     case I_IN: {
