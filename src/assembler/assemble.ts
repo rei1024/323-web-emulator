@@ -398,7 +398,7 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
             item.ctx,
           );
         }
-        const value = item.isWordBased ? (addr >> 1) : addr;
+        const value = item.isWordBased ? (addr >>> 1) : addr;
         if (item.immidiateHwordCount === 1) {
           machineCode.push(value);
         } else if (item.immidiateHwordCount === 2) {

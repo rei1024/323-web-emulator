@@ -17,6 +17,7 @@ import {
   stringifyInstruction,
   type SubInstruction,
 } from "./instruction.ts";
+import { generateRandomInstruction } from "./instruction-random.ts";
 
 Deno.test("stringifyInstruction sub", () => {
   const instruction: SubInstruction = {
@@ -205,4 +206,17 @@ Deno.test("decodeInstruction JFR", () => {
 
   const reencoded = encodeInstruction(decoded);
   assertEquals(reencoded, expected);
+});
+
+Deno.test("instruction Property Based Testing", () => {
+  for (let i = 0; i < 100; i++) {
+    const inst = generateRandomInstruction();
+    const encoded = encodeInstruction(inst);
+    const decoded = decodeInstruction(
+      encoded[0],
+      () => encoded[1],
+      () => encoded[2],
+    );
+    assertEquals(inst, decoded);
+  }
 });

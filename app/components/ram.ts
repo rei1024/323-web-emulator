@@ -85,7 +85,7 @@ export class RAMUI {
     this.$leftPage.disabled = this.page <= 0;
 
     const startWordAddress = WORD_OFFSET +
-      this.page * ROWS_PER_PAGE * (CHUNK >> 1);
+      this.page * ROWS_PER_PAGE * (CHUNK >>> 1);
     const hwords = ram.slice(startWordAddress).flatMap((word) => split(word));
 
     this.$rightPage.disabled = hwords.length === 0;

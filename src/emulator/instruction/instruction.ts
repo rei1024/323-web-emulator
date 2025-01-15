@@ -388,7 +388,7 @@ export function encodeInstruction(inst: Instruction): number[] {
         typeToTopNybble[inst.type] << 12 | 1 << 4 | inst.xZ,
         // split to hwords
         inst.imm32 & 0xffff,
-        inst.imm32 >> 16,
+        inst.imm32 >>> 16,
       ];
     }
     case I_LDR: {
@@ -410,7 +410,7 @@ export function encodeInstruction(inst: Instruction): number[] {
     }
     case I_IN: {
       return [
-        typeToTopNybble[inst.type] << 12 | 3 << 8 || inst.xY << 4 | inst.xZ,
+        typeToTopNybble[inst.type] << 12 | 3 << 8 | inst.xY << 4 | inst.xZ,
       ];
     }
     case I_HLT: {
@@ -491,7 +491,7 @@ export function decodeInstruction(
         throw new Error("Unexpected end of instruction");
       }
       // least significant hword first
-      const imm32 = nextHword | nextNextHword << 16;
+      const imm32 = toUnsigned32(nextHword | nextNextHword << 16);
       return {
         type: I_LDI,
         imm32,

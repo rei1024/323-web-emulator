@@ -146,7 +146,7 @@ export class Emulator {
     } = {},
   ) {
     // Load machine code into RAM after column 0
-    this.ram.setArray(machineCode, PROGRAM_ADDR_START_HWORD >> 1);
+    this.ram.setArray(machineCode, PROGRAM_ADDR_START_HWORD >>> 1);
     this.pc = startingPC ?? PROGRAM_ADDR_START_HWORD;
     this.inDevice = devices.inDevice ?? nopInDevice;
     this.outDevice = devices.outDevice ?? nopOutDevice;

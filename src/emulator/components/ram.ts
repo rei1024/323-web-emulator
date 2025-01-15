@@ -65,7 +65,7 @@ export class RAM {
    */
   get16(hwordAddress: number): number {
     // Calculate the word address and hword offset within the word
-    const wordAddress = hwordAddress >> 1; // Divide by 2 (right shift by 1)
+    const wordAddress = hwordAddress >>> 1; // Divide by 2 (right shift by 1)
     this.checkAddressValidity(wordAddress, "get");
     const isUpperHWord = hwordAddress & 1; // Check if odd (1 for upper hword, 0 for lower)
 
@@ -91,7 +91,7 @@ export class RAM {
 
   set16(hwordAddress: number, value: number) {
     // Calculate the word address and hword offset within the word
-    const wordAddress = hwordAddress >> 1; // Divide by 2 (right shift by 1)
+    const wordAddress = hwordAddress >>> 1; // Divide by 2 (right shift by 1)
     this.checkAddressValidity(wordAddress, "set");
     const isUpperHWord = hwordAddress & 1; // Check if odd (1 for upper hword, 0 for lower)
 
