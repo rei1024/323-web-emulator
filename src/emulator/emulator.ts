@@ -33,7 +33,7 @@ import { RAM } from "./components/ram.ts";
 import { Registers } from "./components/registers.ts";
 import { PROGRAM_ADDR_START_HWORD } from "../assembler/core.ts";
 
-const airthOpMap = {
+const arithOpMap = {
   [I_ADD]: Func.add,
   [I_SUB]: Func.sub,
   [I_MUL]: Func.mul,
@@ -168,7 +168,7 @@ export class Emulator {
       case I_OR:
       case I_AND:
       case I_XOR: {
-        const { value, flag } = airthOpMap[inst.type](
+        const { value, flag } = arithOpMap[inst.type](
           this.registers.get(inst.xX),
           this.registers.get(inst.xY),
         );

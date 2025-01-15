@@ -24,7 +24,7 @@ type ItemRaw =
   | {
     type: "label";
     isWordBased: boolean;
-    immidiateHwordCount: number;
+    immediateHwordCount: number;
     label: string;
   };
 
@@ -174,7 +174,7 @@ class Parser {
         case "immediate": {
           if (operand.isPseudo) {
             ldi();
-            this.pushPseudoImmidiateValue(operand, ctx);
+            this.pushPseudoImmediateValue(operand, ctx);
             modify(operandIndex);
           }
           break;
@@ -189,7 +189,7 @@ class Parser {
             // }
             this.pushLabel(
               operand,
-              typeof info === "number" ? 2 : info.immidiateHwordCount,
+              typeof info === "number" ? 2 : info.immediateHwordCount,
               ctx,
             );
             modify(operandIndex);
@@ -261,9 +261,9 @@ class Parser {
               // pseudo immediate is handled above
               throw new ErrorWithLineContext("Internal error", ctx);
             }
-            if (operandInfo.immidiateHwordCount === 1) {
+            if (operandInfo.immediateHwordCount === 1) {
               this.pushHword(operand.value, ctx);
-            } else if (operandInfo.immidiateHwordCount === 2) {
+            } else if (operandInfo.immediateHwordCount === 2) {
               this.pushWord(operand.value, ctx);
             } else {
               throw new ErrorWithLineContext(
@@ -278,7 +278,7 @@ class Parser {
               // pseudo immediate is handled above
               throw new ErrorWithLineContext("Internal error", ctx);
             }
-            this.pushLabel(operand, operandInfo.immidiateHwordCount, ctx);
+            this.pushLabel(operand, operandInfo.immediateHwordCount, ctx);
             break;
           }
           default: {
@@ -314,7 +314,7 @@ class Parser {
 
   pushLabel(
     label: ParsedOperand & { type: "label" },
-    immidiateHwordCount: number,
+    immediateHwordCount: number,
     ctx: LineContext,
   ) {
     const isWordBased = label.isWordBased;
@@ -322,20 +322,20 @@ class Parser {
       type: "label",
       label: label.label,
       isWordBased,
-      immidiateHwordCount,
+      immediateHwordCount,
       ctx,
     });
     this.addrToLineIndex.set(this.addrAt, {
       lineIndex: ctx.lineIndex,
-      hwordCount: immidiateHwordCount,
+      hwordCount: immediateHwordCount,
     });
-    if (immidiateHwordCount === 2) {
+    if (immediateHwordCount === 2) {
       this.addrToLineIndex.set(this.addrAt + 1, {
         lineIndex: ctx.lineIndex,
-        hwordCount: immidiateHwordCount,
+        hwordCount: immediateHwordCount,
       });
     }
-    this.addrAt += immidiateHwordCount;
+    this.addrAt += immediateHwordCount;
   }
 
   pushHword(value: number, ctx: LineContext) {
@@ -347,7 +347,7 @@ class Parser {
     this.addrAt++;
   }
 
-  pushPseudoImmidiateValue(
+  pushPseudoImmediateValue(
     item: ParsedOperand & { type: "immediate" },
     ctx: LineContext,
   ) {
@@ -399,9 +399,9 @@ export function linkObjectCode(objectCode: ObjectCode): Uint32Array {
           );
         }
         const value = item.isWordBased ? (addr >>> 1) : addr;
-        if (item.immidiateHwordCount === 1) {
+        if (item.immediateHwordCount === 1) {
           machineCode.push(value);
-        } else if (item.immidiateHwordCount === 2) {
+        } else if (item.immediateHwordCount === 2) {
           machineCode.push(value & 0xffff, value >>> 16);
         } else {
           throw new ErrorWithLineContext("Internal error", item.ctx);

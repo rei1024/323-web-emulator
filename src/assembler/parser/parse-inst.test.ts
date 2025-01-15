@@ -87,10 +87,10 @@ Deno.test("parseInstruction add", () => {
 Deno.test("parseInstruction unknown", () => {
   assertThrows(
     () => {
-      parseInstruction("unknwon x0,x1,x2", ctx);
+      parseInstruction("unknown x0,x1,x2", ctx);
     },
     ErrorWithLineContext,
-    "Unrecognised opcode mnemonic 'unknwon'",
+    "Unrecognised opcode mnemonic 'unknown'",
   );
 });
 

@@ -5,7 +5,7 @@ export type InstructionInfo = {
   opcode: number;
   // TODO: combine argsPattern and registers?
   argsPattern: `${"R" | "I" | ""}${"R" | "I" | ""}${"R" | "I" | ""}`;
-  registers: (number | { immidiateHwordCount: number })[];
+  registers: (number | { immediateHwordCount: number })[];
 };
 
 export const instructionSet: Record<string, InstructionInfo[]> = {
@@ -28,14 +28,14 @@ export const instructionSet: Record<string, InstructionInfo[]> = {
     {
       opcode: 0xe010,
       argsPattern: "IR",
-      registers: [{ immidiateHwordCount: 2 }, 4],
+      registers: [{ immediateHwordCount: 2 }, 4],
     },
   ],
   jmp: [
     {
       opcode: 0xe000,
       argsPattern: "I",
-      registers: [{ immidiateHwordCount: 1 }],
+      registers: [{ immediateHwordCount: 1 }],
     },
     { opcode: 0xe200, argsPattern: "R", registers: [3] },
   ],
@@ -43,7 +43,7 @@ export const instructionSet: Record<string, InstructionInfo[]> = {
     {
       opcode: 0xe001,
       argsPattern: "I",
-      registers: [{ immidiateHwordCount: 1 }],
+      registers: [{ immediateHwordCount: 1 }],
     },
     { opcode: 0xe201, argsPattern: "R", registers: [3] },
   ],
@@ -51,7 +51,7 @@ export const instructionSet: Record<string, InstructionInfo[]> = {
     {
       opcode: 0xe002,
       argsPattern: "I",
-      registers: [{ immidiateHwordCount: 1 }],
+      registers: [{ immediateHwordCount: 1 }],
     },
     { opcode: 0xe202, argsPattern: "R", registers: [3] },
   ],
@@ -155,7 +155,7 @@ export function parseOperand(
     }
   }
 
-  // Label or Pseudo immidiate label
+  // Label or Pseudo immediate label
   {
     const { label, pi, isWordBased } = operand.match(
       /^(?<pi>!)?(?<isWordBased>@)?(?<label>[A-Za-z][A-Za-z0-9_]+)/,
@@ -172,7 +172,7 @@ export function parseOperand(
   }
 
   {
-    // immediate number or pseudo immidiate number
+    // immediate number or pseudo immediate number
     const { num, pi } =
       operand.match(/^(?<pi>!)?(?<num>[-A-Za-z0-9_]+)/)?.groups ?? {};
     if (num) {

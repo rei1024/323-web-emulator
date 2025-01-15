@@ -28,7 +28,7 @@ nomul:	mul xB,xB,xB
 `;
 
 /**
- * Compilied by Lua
+ * Compiled by Lua
  */
 export const expMachineCode = new Uint32Array([
   0x0003e011,
@@ -107,7 +107,7 @@ right:	out x0,!0xe
 `;
 
 /**
- * Compilied by Lua
+ * Compiled by Lua
  */
 export const movementDemoMachineCode = new Uint32Array([
   0x8000e011,
