@@ -69,7 +69,7 @@ export class App {
     if (emulatorManager != undefined) {
       const state = emulatorManager.getState();
 
-      this.sourceUI.render(this.emulatorManager?.getCurrentLineIndex());
+      this.sourceUI.render(emulatorManager.getCurrentLineIndex());
       $programCounter.textContent = "0x" +
         state.pc.toString(16);
       $stepNumber.textContent = state.stepCount.toLocaleString();

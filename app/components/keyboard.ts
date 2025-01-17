@@ -18,21 +18,18 @@ export function getKey() {
     ?.[0] as keyof typeof keyboard | undefined) ?? "none";
 }
 
-$keyUp.addEventListener("mousedown", () => {
-  keyboard.up = true;
-});
+const keys: [$e: HTMLButtonElement, keyof typeof keyboard][] = [
+  [$keyUp, "up"],
+  [$keyDown, "down"],
+  [$keyLeft, "left"],
+  [$keyRight, "right"],
+];
 
-$keyDown.addEventListener("mousedown", () => {
-  keyboard.down = true;
-});
-
-$keyLeft.addEventListener("mousedown", () => {
-  keyboard.left = true;
-});
-
-$keyRight.addEventListener("mousedown", () => {
-  keyboard.right = true;
-});
+for (const [$e, key] of keys) {
+  $e.addEventListener("mousedown", () => {
+    keyboard[key] = true;
+  });
+}
 
 document.addEventListener("mouseup", () => {
   keyboard.up = false;
