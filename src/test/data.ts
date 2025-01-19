@@ -1,31 +1,9 @@
+const DIR = "./static/program/";
+
 /**
  * exp.323
  */
-export const expAsm = `; An efficient method to compute exponents.
-
-start:	ld 3,x1
-	ld 10,x2
-	ld end,xC
-	jmp exp
-end:	out x8,!0xe
-	out x0,!0xe
-	hlt
-
-; Raise x1 to the power of x2, result in x8.
-exp:	ld 1,x9      ; Bitmask.
-	xor x0,x9,x8 ; Final result accumulator.
-	xor x0,x1,xB ; x1 ** (2**n) accumulator.
-	xor x0,x2,xA ; Exponent.
-	ld -1,xE     ; Amount to shift xD by.
-loop:	xor xA,x0,x0
-	jnf xC
-	and x9,xA,x0
-	jnf nomul
-	mul xB,x8,x8
-nomul:	mul xB,xB,xB
-	shf xA,xE,xA
-	jmp loop
-`;
+export const getExpAsm = () => Deno.readTextFileSync(DIR + "exp.323");
 
 /**
  * Compiled by Lua
@@ -56,55 +34,8 @@ export const expMachineCode = new Uint32Array([
 /**
  * movement-demo.323
  */
-export const movementDemoAsm =
-  `; Simple demonstration of moving a dot on the screen with the arrow keys.
-; This is mostly intended as a simple example program for people trying to learn
-; how to program the 323. The program is initialised by setting some registers,
-; clearing the screen, drawing the dot, then entering the main loop.
-;
-; The main loop checks for keypresses and jumps to corresponding labels when the
-; keys are pressed. Moving up or down just means rotating the register (x1) that
-; holds the dot (this is the equivalent of a y coordinate), then re-drawing it.
-; Moving left or right involves changing x2, the x coordinate, and drawing at
-; the new location, but not before un-drawing it at the old location.
-
-start:	ld 0x00008000,x1 ; x1 = cursor column
-	ld 16,x2         ; x2 = x coord
-	ld 31,x3
-dl:	out x0,!0xe      ; clear screen
-	out x3,!0xe
-	sub x3,!1,x3
-	jf dl
-draw:	out x1,!0xe      ; draw dot
-	out x2,!0xe
-
-mloop:	in !0xd,x3
-	xor x3,!-1,x0
-	jnf left
-	xor x3,!-2,x0
-	jnf up
-	xor x3,!-3,x0
-	jnf right
-	xor x3,!-4,x0
-	jnf down
-	jmp mloop
-
-down:	rot x1,!1,x1
-	jmp draw
-
-up:	rot x1,!-1,x1
-	jmp draw
-
-left:	out x0,!0xe
-	out x2,!0xe
-	sub x2,!1,x2
-	jmp draw
-
-right:	out x0,!0xe
-	out x2,!0xe
-	add x2,!1,x2
-	jmp draw
-`;
+export const getMovementDemoAsm = () =>
+  Deno.readTextFileSync(DIR + "movement-demo.323");
 
 /**
  * Compiled by Lua
@@ -166,142 +97,8 @@ export const movementDemoMachineCode = new Uint32Array([
 /**
  * I'm So Meta, Even This Acronym.323
  */
-export const b3s23Asm =
-  `; Yo dawg, I heard you like cellular automata, so we put a cellular automaton in
-; your cellular automaton so you can simulate while you simulate.
-; Remember that meme? No? Sorry.
-;
-; B3/S23 simulator, using bitwise operations to do 8 cells at a time. Gets about
-; one column per second on my machine. Due to impatience, I used my emulator to
-; test this (although I also ran it on the CPU proper once I knew it worked).
-
-; x8 = array to read from
-; x9 = array to write to
-
-start:	ld @a1,x8
-	ld @a2,x9
-frame:	ld 31,x1              ; x1 = index of column (0 to 31)
-col:	ld 3,x5               ; x5 = bit within nybble (used for rotates)
-	xor x0,x0,x6          ; x6 = final accumulator
-bit:	add x1,x8,x2          ; x2 = current column address in RAM
-	ld x2,x3              ; x3 = current column data
-	rot x3,x5,x3
-	xor x0,x0,x4          ; x4 = neighbour count accumulator
-	; Neighbour count:
-	; CENTRE COLUMN
-	; add N
-	rot x3,!1,xD
-	and xD,!0x11111111,xD
-	add x4,xD,x4
-	; add S
-	rot x3,!-1,xD
-	and xD,!0x11111111,xD
-	add x4,xD,x4
-	; COLUMN TO THE LEFT (WEST)
-	sub x2,!1,x3
-	ld x3,x3
-	rot x3,x5,x3
-	; add NW
-	rot x3,!1,xD
-	and xD,!0x11111111,xD
-	add x4,xD,x4
-	; add W
-	and x3,!0x11111111,xD
-	add x4,xD,x4
-	; add SW
-	rot x3,!-1,xD
-	and xD,!0x11111111,xD
-	add x4,xD,x4
-	; COLUMN TO THE RIGHT (EAST)
-	add x2,!1,x3
-	ld x3,x3
-	rot x3,x5,x3
-	; add NE
-	rot x3,!1,xD
-	and xD,!0x11111111,xD
-	add x4,xD,x4
-	; add E
-	and x3,!0x11111111,xD
-	add x4,xD,x4
-	; add SE
-	rot x3,!-1,xD
-	and xD,!0x11111111,xD
-	add x4,xD,x4
-	; Now we're done with the neighbour count.
-	; Apply transition rule of B3/S23:
-	ld x2,x3
-	rot x3,x5,x3
-	and x3,!0x11111111,x3
-	or x3,x4,x4
-	xor x4,!0x33333333,x4
-	; Now we just need to check if each nybble is non-zero.
-	and x4,!0xcccccccc,x3
-	shf x3,!-2,x3
-	or x3,x4,x4
-	and x4,!0x22222222,x3
-	shf x3,!-1,x3
-	or x3,x4,x4
-	and x4,!0x11111111,x4
-	xor x4,!0x11111111,x4 ; Done. Now OR it into the final accumulator:
-	sub x0,x5,x3
-	rot x4,x3,x4
-	or x4,x6,x6
-	; Handle looping for bit:
-	sub x5,!1,x5
-	jf bit
-	; Handle looping for col:
-	add x1,x9,x2
-	st x6,x2
-	ld 0xe,xE
-	out x6,xE
-	out x1,xE
-	sub x1,!1,x1
-	jf col
-	; Handle looping for frame:
-	xor x8,x0,xE
-	xor x9,x0,x8
-	xor xE,x0,x9
-	jmp frame
-
-	; We use 2 alternating arrays; read from one and write to the other.
-	; To simplify code, both arrays have 1 empty col. (word) on either side.
-	align 2
-	dw 0
-a1:	dw 0
-	dw 0
-	dw 0x00000010
-	dw 0x00000014
-	dw 0x00000018
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-	dw 10
-	dw 9
-	dw 8
-	dw 7
-	dw 6
-	dw 5
-	dw 0
-	dw 0
-	dw 0
-	dw 0x3000000
-	dw 0x6000000
-	dw 0x2000000
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-	dw 0
-a2:	rep 0 33
-`;
+export const b3s23Asm = () =>
+  Deno.readTextFileSync(DIR + "I'm So Meta, Even This Acronym.323");
 
 export const b3s23MachineCode = new Uint32Array([
   0x00d0e018,

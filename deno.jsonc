@@ -18,12 +18,15 @@
   "exclude": ["dist"],
   "lint": {
     "rules": {
-      "include": ["no-throw-literal", "no-sparse-arrays", "no-eval"],
+      "include": [
+        "no-throw-literal",
+        "no-sparse-arrays",
+        "no-eval",
+        "camelcase"
+      ],
       "exclude": [
         "ban-ts-comment",
         "no-unused-vars",
-        "no-this-alias",
-        "no-inferrable-types",
         "no-window"
       ]
     }

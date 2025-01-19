@@ -13,8 +13,8 @@ export class Valve {
   #id = 0;
   /**
    * Default is disabled
-   * @param {(value: number) => void} handler
-   * @param {{ frequency: number, signal?: AbortSignal }} param0
+   * @param handler
+   * @param param0
    */
   constructor(
     handler: (value: number) => void,

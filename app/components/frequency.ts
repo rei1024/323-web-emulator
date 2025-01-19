@@ -4,10 +4,7 @@ function internalError(): never {
   throw new Error("internal");
 }
 
-/**
- * @returns {number[]}
- */
-const getFrequencies = () => {
+const getFrequencies = (): number[] => {
   const frequencyArray: number[] = [];
   const maxOrder = 6;
   for (let i = 0; i <= maxOrder; i++) {

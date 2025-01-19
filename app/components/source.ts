@@ -1,6 +1,9 @@
 import { $removeAllBreakpoints, $sourceLines } from "../bind.ts";
 import { create } from "../util/create.ts";
 
+/**
+ * Source code with breakpoints
+ */
 export class SourceUI {
   private breakpointLineIndexSet = new Set<number>();
   private lines: {

@@ -1,3 +1,6 @@
+/**
+ * Draw display on canvas element
+ */
 export class DisplayUI {
   private context: CanvasRenderingContext2D;
   constructor($canvas: HTMLCanvasElement) {

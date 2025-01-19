@@ -1,9 +1,6 @@
 import { chunk } from "../util/chunk.ts";
 import { create } from "../util/create.ts";
 
-/**
- * 列の数
- */
 const getNumberOfCols = (): number => {
   const width = window.innerWidth;
   if (width < 992) {

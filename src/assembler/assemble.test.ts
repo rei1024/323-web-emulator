@@ -2,8 +2,10 @@ import { assertEquals } from "@std/assert/equals";
 import {
   b3s23Asm,
   b3s23MachineCode,
-  expAsm,
   expMachineCode,
+  getExpAsm,
+  getMovementDemoAsm,
+  movementDemoMachineCode,
   sortMachineCode,
   sqrtMachineCode,
   textAsm,
@@ -11,8 +13,6 @@ import {
 } from "../test/data.ts";
 import { assemble } from "./assemble.ts";
 import { ErrorWithLineContext } from "./core.ts";
-import { movementDemoAsm } from "../test/data.ts";
-import { movementDemoMachineCode } from "../test/data.ts";
 
 function split(u32: number) {
   return [u32 & 0xffff, u32 >>> 16];
@@ -40,18 +40,18 @@ function correct(asm: string, expectedMachineCode: Uint32Array) {
 }
 
 Deno.test("assemble exp", () => {
-  correct(expAsm, expMachineCode);
+  correct(getExpAsm(), expMachineCode);
 });
 
 Deno.test("assemble movement-demo", () => {
-  correct(movementDemoAsm, movementDemoMachineCode);
+  correct(getMovementDemoAsm(), movementDemoMachineCode);
 });
 
 Deno.test("assemble b3s23", () => {
   // Lua removes trailing zero
   const buf = new Uint32Array(b3s23MachineCode.length + 33 + 5);
   buf.set(b3s23MachineCode);
-  correct(b3s23Asm, buf);
+  correct(b3s23Asm(), buf);
 });
 
 Deno.test("assemble text", () => {
