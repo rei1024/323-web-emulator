@@ -17,7 +17,7 @@ jobs:
         with:
           deno-version: v2.x # latest
       - run: deno task build
-      - uses: actions/upload-pages-artifact@v1
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
@@ -31,5 +31,5 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/deploy-pages@v2
+      - uses: actions/deploy-pages@v4
         id: deployment
