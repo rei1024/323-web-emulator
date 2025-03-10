@@ -75,8 +75,12 @@ $ramDetails.addEventListener("toggle", () => {
 });
 
 function saveRegisterConfig() {
-  localStorage.setItem(REGISTER_DEC_KEY, String($registerDec.checked));
-  localStorage.setItem(REGISTER_HEX_KEY, String($registerHex.checked));
+  try {
+    localStorage.setItem(REGISTER_DEC_KEY, String($registerDec.checked));
+    localStorage.setItem(REGISTER_HEX_KEY, String($registerHex.checked));
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 $registerDec.addEventListener("click", () => {
