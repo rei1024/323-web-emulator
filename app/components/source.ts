@@ -1,15 +1,17 @@
 import { $removeAllBreakpoints, $sourceLines } from "../bind.ts";
 import { create } from "../util/create.ts";
 
+type Line = {
+  checkbox?: HTMLInputElement | undefined;
+  line: HTMLElement;
+};
+
 /**
  * Source code with breakpoints
  */
 export class SourceUI {
   private breakpointLineIndexSet = new Set<number>();
-  private lines: {
-    checkbox?: HTMLInputElement | undefined;
-    line: HTMLElement;
-  }[] = [];
+  private lines: Line[] = [];
 
   reset() {
     this.breakpointLineIndexSet.clear();
@@ -66,6 +68,7 @@ export class SourceUI {
     for (const [lineIndex, line] of this.lines.entries()) {
       if (lineIndex === currentLineIndex) {
         line.line.style.borderBottom = "1px solid black";
+        scrollToCenter($sourceLines, currentLineIndex, this.lines);
       } else {
         line.line.style.borderBottom = "";
       }
@@ -82,4 +85,29 @@ export class SourceUI {
 
     this.renderButton();
   }
+}
+
+function scrollToCenter(
+  sourceLines: HTMLElement,
+  currentLineIndex: number,
+  lines: Line[],
+) {
+  const totalLines = lines.length;
+  if (
+    currentLineIndex < 0 || currentLineIndex >= totalLines ||
+    currentLineIndex >= sourceLines.children.length
+  ) {
+    return;
+  }
+
+  // Calculate the vertical scroll position to center the target line
+  const scrollToPosition =
+    (sourceLines.scrollHeight / totalLines) * currentLineIndex -
+    (sourceLines.clientHeight / 2);
+
+  // Smoothly scroll to the calculated position
+  sourceLines.scrollTo({
+    top: scrollToPosition,
+    behavior: "smooth",
+  });
 }
