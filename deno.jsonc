@@ -36,6 +36,6 @@
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.10",
-    "esbuild": "npm:esbuild@^0.25.3"
+    "esbuild": "npm:esbuild@^0.25.4"
   }
 }
