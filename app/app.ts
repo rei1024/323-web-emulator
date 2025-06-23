@@ -19,7 +19,7 @@ import {
 import { renderControlButtons } from "./components/control-buttons.ts";
 import { DisplayUI } from "./components/display.ts";
 import { renderFrequency } from "./components/frequency.ts";
-import { getKey } from "./components/keyboard.ts";
+import { getPressedKey } from "./components/keyboard.ts";
 import { renderMessage } from "./components/message.ts";
 import { RAMUI } from "./components/ram.ts";
 import { RegistersUI } from "./components/registers.ts";
@@ -52,6 +52,7 @@ export class App {
       this.state = "Halted";
     }
 
+    // for performance reasons
     if ($historyEnable.checked) {
       this.valve.frequency = Math.min(this.valve.frequency, 5000);
     }
@@ -121,7 +122,7 @@ export class App {
     try {
       this.emulatorManager = new EmulatorManager(value, {
         getKey() {
-          return getKey();
+          return getPressedKey();
         },
       });
       if (!noSourceReset) {

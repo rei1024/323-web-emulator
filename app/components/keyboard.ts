@@ -13,7 +13,7 @@ export const keyboard = {
   right: false,
 };
 
-export function getKey() {
+export function getPressedKey() {
   return (Object.entries(keyboard).find((x) => x[1])
     ?.[0] as keyof typeof keyboard | undefined) ?? "none";
 }
@@ -41,35 +41,31 @@ document.addEventListener("mouseup", () => {
 let useHardware = false;
 
 document.addEventListener("keydown", (e) => {
-  if (!useHardware) {
+  if (!useHardware || e.isComposing) {
     return;
   }
-  if (e instanceof KeyboardEvent) {
-    if (e.isComposing) {
-      return;
-    }
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        keyboard.down = true;
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        keyboard.up = true;
-        break;
-      case "ArrowLeft":
-        e.preventDefault();
-        keyboard.left = true;
-        break;
-      case "ArrowRight":
-        e.preventDefault();
-        keyboard.right = true;
-        break;
-      case "Escape":
-        useHardware = false;
-        render();
-        break;
-    }
+
+  switch (e.key) {
+    case "ArrowDown":
+      e.preventDefault();
+      keyboard.down = true;
+      break;
+    case "ArrowUp":
+      e.preventDefault();
+      keyboard.up = true;
+      break;
+    case "ArrowLeft":
+      e.preventDefault();
+      keyboard.left = true;
+      break;
+    case "ArrowRight":
+      e.preventDefault();
+      keyboard.right = true;
+      break;
+    case "Escape":
+      useHardware = false;
+      render();
+      break;
   }
 });
 
@@ -77,21 +73,20 @@ document.addEventListener("keyup", (e) => {
   if (!useHardware) {
     return;
   }
-  if (e instanceof KeyboardEvent) {
-    switch (e.key) {
-      case "ArrowDown":
-        keyboard.down = false;
-        break;
-      case "ArrowUp":
-        keyboard.up = false;
-        break;
-      case "ArrowLeft":
-        keyboard.left = false;
-        break;
-      case "ArrowRight":
-        keyboard.right = false;
-        break;
-    }
+
+  switch (e.key) {
+    case "ArrowDown":
+      keyboard.down = false;
+      break;
+    case "ArrowUp":
+      keyboard.up = false;
+      break;
+    case "ArrowLeft":
+      keyboard.left = false;
+      break;
+    case "ArrowRight":
+      keyboard.right = false;
+      break;
   }
 });
 
