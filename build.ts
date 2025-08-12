@@ -1,5 +1,5 @@
 import * as esbuild from "esbuild";
-import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@0.11.1";
+import { denoPlugin } from "@deno/esbuild-plugin";
 import { serveDir } from "jsr:@std/http@^1/file-server";
 // deno run --allow-env --allow-read --allow-write=. --allow-run build.ts
 
@@ -11,7 +11,7 @@ const target = ["chrome99", "firefox99", "safari15"];
 const isDev = Deno.args.includes("dev");
 
 await esbuild.build({
-  plugins: [...denoPlugins()],
+  plugins: [denoPlugin()],
   entryPoints: [entryPoint],
   outfile: outputPath,
   bundle: true,

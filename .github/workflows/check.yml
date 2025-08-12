@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Git Checkout Deno Module
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install Deno
         uses: denoland/setup-deno@v2
         with:

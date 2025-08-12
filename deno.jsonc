@@ -35,7 +35,8 @@
     "indentWidth": 2
   },
   "imports": {
+    "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.1.4",
     "@std/assert": "jsr:@std/assert@^1.0.10",
-    "esbuild": "npm:esbuild@^0.25.4"
+    "esbuild": "npm:esbuild@^0.25.8"
   }
 }
