@@ -1,6 +1,6 @@
 import * as esbuild from "esbuild";
 import { denoPlugin } from "@deno/esbuild-plugin";
-import { serveDir } from "jsr:@std/http@^1/file-server";
+import { serveDir } from "@std/http/file-server";
 // deno run --allow-env --allow-read --allow-write=. --allow-run build.ts
 
 const entryPoint = "./app/index.ts";
