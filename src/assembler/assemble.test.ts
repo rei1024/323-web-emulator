@@ -14,7 +14,10 @@ import {
 import { assemble } from "./assemble.ts";
 import { ErrorWithLineContext } from "./core.ts";
 
-function split(u32: number) {
+/**
+ * Split 32 bits number to lower 16 bits and upper 16 bits
+ */
+function split(u32: number): [lower: number, upper: number] {
   return [u32 & 0xffff, u32 >>> 16];
 }
 

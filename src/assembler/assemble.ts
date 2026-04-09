@@ -28,11 +28,9 @@ type ItemRaw =
     label: string;
   };
 
-type ObjectCodeItem =
-  & {
-    ctx: LineContext;
-  }
-  & ItemRaw;
+type ObjectCodeItem = ItemRaw & {
+  ctx: LineContext;
+};
 
 type ObjectCode = {
   items: ObjectCodeItem[];
@@ -55,8 +53,11 @@ class Parser {
   private addrAt = PROGRAM_ADDR_START_HWORD;
   constructor() {}
 
+  /**
+   * Parse the source code to the object code
+   */
   parse(src: string): ObjectCode {
-    const lines = src.replace("\r", "").split("\n");
+    const lines = src.replaceAll("\r", "").split("\n");
     for (const [lineIndex, lineComment] of lines.entries()) {
       this.parseLine(lineComment, lineIndex);
     }
@@ -438,6 +439,10 @@ export type AssembleResult = {
   machineCode: Uint32Array;
 };
 
+/**
+ * Assemble machine code from the source code.
+ * @param src 323 source code
+ */
 export function assemble(src: string): AssembleResult {
   const objectCode = parseAssembly(src);
   const startingPC = objectCode.symbolTable.get("start") ??

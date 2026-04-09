@@ -24,7 +24,7 @@ export class SourceUI {
 
   initialize(src: string) {
     this.reset();
-    const lines = src.replace("\r", "").split("\n");
+    const lines = src.replaceAll("\r", "").split("\n");
     for (const [lineIndex, line] of lines.entries()) {
       let checkbox: undefined | HTMLInputElement = undefined;
       const lineTrim = line.trimStart();

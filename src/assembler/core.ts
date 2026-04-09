@@ -1,5 +1,9 @@
 export interface LineContext {
+  /**
+   * 0-based index
+   */
   lineIndex: number;
+  /** source code of the line */
   lineSource: string; // comment stripped
 }
 
