@@ -1,11 +1,11 @@
-import { assertEquals } from "@std/assert/equals";
+import { assertEquals, test } from "../deps_test.ts";
 import { Emulator } from "./emulator.ts";
 import { expMachineCode, textMachineCode } from "../test/data.ts";
 import { OutDeviceImpl } from "./devices/devices.ts";
 import { encodeSaveState } from "./save-state/encode.ts";
 import { decodeSaveState } from "./save-state/decode.ts";
 
-Deno.test("Emulator add x0,x0,xF", () => {
+test("Emulator add x0,x0,xF", () => {
   const emulator = new Emulator({ machineCode: new Uint32Array([0x000f]) });
   emulator.step();
   assertEquals(
@@ -14,7 +14,7 @@ Deno.test("Emulator add x0,x0,xF", () => {
   );
 });
 
-Deno.test("Emulator run exp", () => {
+test("Emulator run exp", () => {
   const emulator = new Emulator({ machineCode: expMachineCode });
   emulator.run();
   assertEquals(
@@ -23,7 +23,7 @@ Deno.test("Emulator run exp", () => {
   );
 });
 
-Deno.test("Emulator run text", () => {
+test("Emulator run text", () => {
   const outDevice = new OutDeviceImpl();
   const emulator = new Emulator({ machineCode: textMachineCode }, {
     outDevice,

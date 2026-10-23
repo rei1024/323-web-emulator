@@ -149,7 +149,7 @@ export function parseOperand(
 ): ParsedOperand {
   // Register
   {
-    const index = operand.match(/^x(?<index>[0-9A-F])$/)?.groups?.index;
+    const index = operand.match(/^x(?<index>[0-9A-F])$/)?.groups?.["index"];
     if (index) {
       return { type: "register", registerIndex: parseInt(index, 16) };
     }

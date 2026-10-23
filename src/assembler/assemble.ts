@@ -86,7 +86,7 @@ class Parser {
     const ctx = { lineIndex, lineSource: line };
 
     const label = line.match(/^(?<label>[A-Za-z][A-Za-z0-9_]*):/)?.groups
-      ?.label;
+      ?.["label"];
     const cmd = line.slice(label ? (label.length + 1) : 0).trim();
 
     if (label) {
@@ -98,7 +98,7 @@ class Parser {
     }
 
     if (cmd.match(/^\t?align /)) {
-      const n = cmd.match(/align\s+(?<num>\S+)\s*$/)?.groups?.num;
+      const n = cmd.match(/align\s+(?<num>\S+)\s*$/)?.groups?.["num"];
       if (!n) {
         throw new ErrorWithLineContext(
           "Invalid arguments to 'align'.",
@@ -109,7 +109,7 @@ class Parser {
       const nVal = parseUnsignedVal(n, ctx);
       this.align(nVal, ctx);
     } else if (cmd.match(/^\t?d[hw] /)) {
-      const val = cmd.match(/d[hw]\s+(?<val>\S+)\s*$/)?.groups?.val;
+      const val = cmd.match(/d[hw]\s+(?<val>\S+)\s*$/)?.groups?.["val"];
       if (!val) {
         throw new ErrorWithLineContext(
           "Invalid argument to dh/dw.",
@@ -293,7 +293,7 @@ class Parser {
 
   private parseStr(cmd: string, ctx: LineContext) {
     this.align(2, ctx);
-    const str = cmd.match(/\t?str (?<str>.*)/)?.groups?.str ?? "";
+    const str = cmd.match(/\t?str (?<str>.*)/)?.groups?.["str"] ?? "";
     const words = strToWords(str, ctx);
     for (const word of words) {
       this.pushWord(word, ctx);
