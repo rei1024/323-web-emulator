@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check": "tsc --noEmit",
     "coverage": "vitest run --coverage"
   },
   "devDependencies": {

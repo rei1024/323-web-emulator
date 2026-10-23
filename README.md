@@ -16,5 +16,6 @@ An emulator for the
 - `$ npm run test` Unit tests with Vitest
 - `$ npm run test:watch` Unit tests with file watcher
 - `$ npm run coverage` Unit tests coverage
+- `$ npm run check` Type check
 - `$ npm run build` Build for production with Vite
 - `$ npm run preview` Preview production build
