@@ -1,9 +1,8 @@
-import { assertEquals } from "@std/assert/equals";
+import { assertEquals, assertThrows, test } from "../../deps_test.ts";
 import { parseInstruction, parseOperand } from "./parse-inst.ts";
-import { assertThrows } from "@std/assert/throws";
 import { ErrorWithLineContext } from "../core.ts";
 
-Deno.test("parseOperand", () => {
+test("parseOperand", () => {
   const ctx = { lineIndex: 0, lineSource: "" };
 
   assertEquals(parseOperand("123", ctx), {
@@ -63,7 +62,7 @@ Deno.test("parseOperand", () => {
 
 const ctx = { lineIndex: 0, lineSource: "" };
 
-Deno.test("parseInstruction add", () => {
+test("parseInstruction add", () => {
   assertEquals({ ...parseInstruction("add x0,x1,x2", ctx), info: null }, {
     op: "add",
     operands: [
@@ -84,7 +83,7 @@ Deno.test("parseInstruction add", () => {
   });
 });
 
-Deno.test("parseInstruction unknown", () => {
+test("parseInstruction unknown", () => {
   assertThrows(
     () => {
       parseInstruction("unknown x0,x1,x2", ctx);
@@ -94,7 +93,7 @@ Deno.test("parseInstruction unknown", () => {
   );
 });
 
-Deno.test("parseInstruction st", () => {
+test("parseInstruction st", () => {
   assertEquals({ ...parseInstruction("st x1,!@pdx1", ctx), info: null }, {
     op: "st",
     operands: [

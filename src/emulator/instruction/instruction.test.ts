@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, test } from "../../deps_test.ts";
 import {
   I_ADD,
   I_HLT,
@@ -19,7 +19,7 @@ import {
 } from "./instruction.ts";
 import { generateRandomInstruction } from "./instruction-random.ts";
 
-Deno.test("stringifyInstruction sub", () => {
+test("stringifyInstruction sub", () => {
   const instruction: SubInstruction = {
     type: I_SUB,
     xX: 0,
@@ -32,7 +32,7 @@ Deno.test("stringifyInstruction sub", () => {
   assertEquals(stringified, "sub x1,x0,x2");
 });
 
-Deno.test("encodeInstruction add", () => {
+test("encodeInstruction add", () => {
   const instruction: AddInstruction = {
     type: I_ADD,
     xX: 0,
@@ -44,7 +44,7 @@ Deno.test("encodeInstruction add", () => {
   assertEquals(encoded, [0x012]);
 });
 
-Deno.test("encodeInstruction sub", () => {
+test("encodeInstruction sub", () => {
   const instruction: SubInstruction = {
     type: I_SUB,
     xX: 0,
@@ -56,7 +56,7 @@ Deno.test("encodeInstruction sub", () => {
   assertEquals(encoded, [0x1012]);
 });
 
-Deno.test("decodeInstruction add", () => {
+test("decodeInstruction add", () => {
   const encoded = 0x0123;
   const decoded = decodeInstruction(encoded, () => {
     throw new Error();
@@ -75,7 +75,7 @@ Deno.test("decodeInstruction add", () => {
   assertEquals(encodeInstruction(decoded), [encoded]);
 });
 
-Deno.test("decodeInstruction JMPI", () => {
+test("decodeInstruction JMPI", () => {
   const encoded = 0xe000;
   const imm16 = 0xb;
   const decoded = decodeInstruction(encoded, () => imm16, () => 0xc);
@@ -93,7 +93,7 @@ Deno.test("decodeInstruction JMPI", () => {
   assertEquals(reencoded, expected);
 });
 
-Deno.test("decodeInstruction LDI", () => {
+test("decodeInstruction LDI", () => {
   const encoded = 0xe015;
   const imm16 = 0xb;
   const imm16Lower = 0xc;
@@ -112,7 +112,7 @@ Deno.test("decodeInstruction LDI", () => {
   assertEquals(reencoded, expected);
 });
 
-Deno.test("decodeInstruction OUT", () => {
+test("decodeInstruction OUT", () => {
   const encoded = 0xa231;
   const decoded = decodeInstruction(encoded, () => {
     throw new Error();
@@ -132,7 +132,7 @@ Deno.test("decodeInstruction OUT", () => {
   assertEquals(reencoded, expected);
 });
 
-Deno.test("decodeInstruction STR", () => {
+test("decodeInstruction STR", () => {
   const encoded = 0xa230;
   const decoded = decodeInstruction(encoded, () => {
     throw new Error();
@@ -152,7 +152,7 @@ Deno.test("decodeInstruction STR", () => {
   assertEquals(reencoded, expected);
 });
 
-Deno.test("decodeInstruction hlt", () => {
+test("decodeInstruction hlt", () => {
   const encoded = 0xeeee;
   const decoded = decodeInstruction(encoded, () => {
     throw new Error();
@@ -170,7 +170,7 @@ Deno.test("decodeInstruction hlt", () => {
   assertEquals(reencoded, expected);
 });
 
-Deno.test("decodeInstruction jf", () => {
+test("decodeInstruction jf", () => {
   const encoded = 0xe002;
   const decoded = decodeInstruction(encoded, () => {
     return 100;
@@ -189,7 +189,7 @@ Deno.test("decodeInstruction jf", () => {
   assertEquals(reencoded, expected);
 });
 
-Deno.test("decodeInstruction JFR", () => {
+test("decodeInstruction JFR", () => {
   const encoded = 0xe252;
   const decoded = decodeInstruction(encoded, () => {
     throw new Error();
@@ -208,7 +208,7 @@ Deno.test("decodeInstruction JFR", () => {
   assertEquals(reencoded, expected);
 });
 
-Deno.test("instruction Property Based Testing", () => {
+test("instruction Property Based Testing", () => {
   for (let i = 0; i < 100; i++) {
     const inst = generateRandomInstruction();
     const encoded = encodeInstruction(inst);

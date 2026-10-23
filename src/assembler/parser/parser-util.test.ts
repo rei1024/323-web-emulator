@@ -1,9 +1,8 @@
-import { assertEquals } from "@std/assert/equals";
+import { assertEquals, assertThrows, test } from "../../deps_test.ts";
 import { parseInteger, parseUnsignedVal } from "./parser-util.ts";
 import { ErrorWithLineContext } from "../core.ts";
-import { assertThrows } from "@std/assert/throws";
 
-Deno.test("parseUnsignedVal", () => {
+test("parseUnsignedVal", () => {
   const ctx = { lineIndex: 0, lineSource: "" };
   assertEquals(parseUnsignedVal("0x1234", ctx), 0x1234);
   assertEquals(parseUnsignedVal("1234", ctx), 1234);
@@ -19,7 +18,7 @@ Deno.test("parseUnsignedVal", () => {
   );
 });
 
-Deno.test("parseInteger", () => {
+test("parseInteger", () => {
   const ctx = { lineIndex: 0, lineSource: "" };
 
   assertEquals(parseInteger("123", ctx), 123);

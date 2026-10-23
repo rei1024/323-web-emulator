@@ -1,9 +1,11 @@
+import fs from "node:fs";
+
 const DIR = "./static/program/";
 
 /**
  * exp.323
  */
-export const getExpAsm = () => Deno.readTextFileSync(DIR + "exp.323");
+export const getExpAsm = () => fs.readFileSync(DIR + "exp.323", "utf-8");
 
 /**
  * Compiled by Lua
@@ -35,7 +37,7 @@ export const expMachineCode = new Uint32Array([
  * movement-demo.323
  */
 export const getMovementDemoAsm = () =>
-  Deno.readTextFileSync(DIR + "movement-demo.323");
+  fs.readFileSync(DIR + "movement-demo.323", "utf-8");
 
 /**
  * Compiled by Lua
@@ -98,7 +100,7 @@ export const movementDemoMachineCode = new Uint32Array([
  * I'm So Meta, Even This Acronym.323
  */
 export const b3s23Asm = () =>
-  Deno.readTextFileSync(DIR + "I'm So Meta, Even This Acronym.323");
+  fs.readFileSync(DIR + "I'm So Meta, Even This Acronym.323", "utf-8");
 
 export const b3s23MachineCode = new Uint32Array([
   0x00d0e018,

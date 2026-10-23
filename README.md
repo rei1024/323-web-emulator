@@ -7,34 +7,14 @@ An emulator for the
 
 ### Requirements
 
-- `deno`
-  - Above v2.0
-  - <https://docs.deno.com/runtime/getting_started/installation/>
+- Node.js (see `.node-version`)
+- npm
 
 ### Usage
 
-#### Local Server
-
-```sh
-deno task dev
-```
-
-#### Unit tests
-
-```sh
-deno task t
-```
-
-with file watcher
-
-```sh
-deno task w
-```
-
-#### Production build
-
-Output to the `dist` directory.
-
-```sh
-deno task build
-```
+- `$ npm run dev` Local development server
+- `$ npm run test` Unit tests with Vitest
+- `$ npm run test:watch` Unit tests with file watcher
+- `$ npm run coverage` Unit tests coverage
+- `$ npm run build` Build for production with Vite
+- `$ npm run preview` Preview production build

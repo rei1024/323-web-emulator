@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert/equals";
+import { assertEquals, test } from "../deps_test.ts";
+import fs from "node:fs/promises";
 import {
   b3s23Asm,
   b3s23MachineCode,
@@ -42,48 +43,47 @@ function correct(asm: string, expectedMachineCode: Uint32Array) {
   }
 }
 
-Deno.test("assemble exp", () => {
+test("assemble exp", () => {
   correct(getExpAsm(), expMachineCode);
 });
 
-Deno.test("assemble movement-demo", () => {
+test("assemble movement-demo", () => {
   correct(getMovementDemoAsm(), movementDemoMachineCode);
 });
 
-Deno.test("assemble b3s23", () => {
+test("assemble b3s23", () => {
   // Lua removes trailing zero
   const buf = new Uint32Array(b3s23MachineCode.length + 33 + 5);
   buf.set(b3s23MachineCode);
   correct(b3s23Asm(), buf);
 });
 
-Deno.test("assemble text", () => {
+test("assemble text", () => {
   correct(textAsm, textMachineCode);
 });
 
-Deno.test("assemble sort", async () => {
-  const sortAsm = await Deno.readTextFile("./static/program/sort.323");
+test("assemble sort", async () => {
+  const sortAsm = await fs.readFile("./static/program/sort.323", "utf-8");
   // Lua removes trailing zero
   const buf = new Uint32Array(sortMachineCode.length + 32);
   buf.set(sortMachineCode);
   correct(sortAsm, buf);
 });
 
-Deno.test("assemble sqrt", async () => {
-  const sqrtAsm = await Deno.readTextFile("./static/program/sqrt.323");
+test("assemble sqrt", async () => {
+  const sqrtAsm = await fs.readFile("./static/program/sqrt.323", "utf-8");
   correct(sqrtAsm, sqrtMachineCode);
 });
 
-Deno.test("assemble programs", async () => {
+test("assemble programs", async () => {
   const dir = "./static/program/";
-  for await (const file of Deno.readDir(dir)) {
-    if (file.isFile) {
+  const files = await fs.readdir(dir, { withFileTypes: true });
+  for (const file of files) {
+    if (file.isFile()) {
       if (!file.name.endsWith(".323")) {
         continue;
       }
-      const src = new TextDecoder().decode(
-        await Deno.readFile(dir + file.name),
-      );
+      const src = await fs.readFile(dir + file.name, "utf-8");
       try {
         assemble(src);
       } catch (error) {

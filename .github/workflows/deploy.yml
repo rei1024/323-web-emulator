@@ -1,4 +1,5 @@
-# https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+# https://docs.github.com/ja/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+# Deploy to GitHub Pages
 name: Deploy
 
 on:
@@ -13,19 +14,21 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - name: Install Deno
-        uses: denoland/setup-deno@v2
+        uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          deno-version: v2.x # latest
-      - run: deno task build
-      - uses: actions/upload-pages-artifact@v4
+          node-version-file: "./.node-version"
+      - run: npm ci
+      - run: npm run test
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
